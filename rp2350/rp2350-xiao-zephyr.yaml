@@ -1,0 +1,18 @@
+esphome:
+  name: test-rp2350-xiao-zephyr
+
+zephyr:
+  variant: rp2350
+  # No partition overlay needed here -- unlike bare rpi_pico2, xiao_rp2350 already
+  # includes a default code/storage partitioning (xiao_rp2350.dtsi) at v4.4.1.
+  board: xiao_rp2350
+
+logger:
+  level: VERBOSE
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s

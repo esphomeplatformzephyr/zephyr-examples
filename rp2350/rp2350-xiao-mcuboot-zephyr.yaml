@@ -1,0 +1,100 @@
+esphome:
+  name: test-rp2350-xiao-mcuboot-zephyr
+
+zephyr:
+  variant: rp2350
+  board: xiao_rp2350
+  advanced:
+    bootloader: mcuboot
+  # xiao_rp2350 has no upstream mcuboot board variant (unlike rpi_pico2), so the
+  # slot0/slot1/storage layout is hand-authored here, matching the exact
+  # boot/slot0/slot1/storage sizes from Zephyr's own real RP2040 mcuboot scheme
+  # (dts/vendor/raspberrypi/partitions_2M_sysbuild.dtsi -- same 2MB flash size),
+  # minus RP2040's 0x100 second-stage-bootloader reservation, which RP2350 doesn't
+  # need (its boot ROM doesn't require a boot2 stub -- see rpi_pico2's own
+  # partitions_4M_sysbuild.dtsi, which also starts boot_partition at 0x0).
+  overlays:
+    app: &mcuboot_partitions |
+      /delete-node/ &code_partition;
+      /delete-node/ &storage_partition;
+
+      &flash0 {
+          partitions {
+              compatible = "fixed-partitions";
+              #address-cells = <0x1>;
+              #size-cells = <0x1>;
+
+              boot_partition: partition@0 {
+                  label = "mcuboot";
+                  reg = <0x0 0x10000>;
+              };
+
+              slot0_partition: partition@10000 {
+                  label = "image-0";
+                  reg = <0x10000 0xd0000>;
+              };
+
+              slot1_partition: partition@e0000 {
+                  label = "image-1";
+                  reg = <0xe0000 0xd0000>;
+              };
+
+              storage_partition: partition@1b0000 {
+                  label = "storage";
+                  reg = <0x1b0000 0x50000>;
+              };
+          };
+      };
+
+      / {
+          chosen {
+              zephyr,code-partition = &slot0_partition;
+          };
+      };
+    mcuboot: |
+      /delete-node/ &code_partition;
+      /delete-node/ &storage_partition;
+
+      &flash0 {
+          partitions {
+              compatible = "fixed-partitions";
+              #address-cells = <0x1>;
+              #size-cells = <0x1>;
+
+              boot_partition: partition@0 {
+                  label = "mcuboot";
+                  reg = <0x0 0x10000>;
+              };
+
+              slot0_partition: partition@10000 {
+                  label = "image-0";
+                  reg = <0x10000 0xd0000>;
+              };
+
+              slot1_partition: partition@e0000 {
+                  label = "image-1";
+                  reg = <0xe0000 0xd0000>;
+              };
+
+              storage_partition: partition@1b0000 {
+                  label = "storage";
+                  reg = <0x1b0000 0x50000>;
+              };
+          };
+      };
+
+      / {
+          chosen {
+              zephyr,code-partition = &boot_partition;
+          };
+      };
+
+logger:
+  level: VERBOSE
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
