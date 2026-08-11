@@ -1,8 +1,8 @@
 esphome:
-  name: esp32c6-wifi-example
+  name: esp32c5-wifi-example
 
 zephyr:
-  variant: ESP32C6
+  variant: ESP32C5
   snippets:
     - espressif-flash-4M
   # pick up mDNS that isn't in a release yet
