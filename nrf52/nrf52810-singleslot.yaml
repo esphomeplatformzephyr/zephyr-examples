@@ -1,0 +1,45 @@
+#Example showing a working single_slot configuration
+esphome:
+  name: test-nrf52810-single
+
+zephyr:
+  variant: nrf52
+  board: nrf52dk/nrf52810
+  single_slot: true
+  # Stock nrf52dk/nrf52810 layout (boards/nordic/nrf52dk/nrf52dk_nrf52810.dts):
+  #   boot_partition @ 0x0,     48K
+  #   slot0_partition @ 0xc000, 56K
+  #   slot1_partition @ 0x1a000, 56K
+  #   storage_partition @ 0x28000, 32K
+  # Delete slot1_partition and grow slot0_partition to absorb the freed space, ending
+  # exactly where storage_partition begins (56K -> 112K).
+  overlays:
+    app: |
+      /delete-node/ &slot1_partition;
+      &slot0_partition {
+          reg = <0xc000 0x1c000>;
+      };
+    # overlays: mcuboot: replaces (not adds to) that image's auto-detected overlay
+    # chain, so MCUboot's own boot_partition chosen node must be restated here.
+    mcuboot: |
+      / {
+          chosen {
+              zephyr,code-partition = &boot_partition;
+          };
+      };
+      /delete-node/ &slot1_partition;
+      &slot0_partition {
+          reg = <0xc000 0x1c000>;
+      };
+
+logger:
+  # nrf52810 has no USB peripheral (USB is nRF52840-only) -- logger's zephyr_nrf52
+  # default (USB_CDC) doesn't account for this, so pick a real UART instead.
+  hardware_uart: UART0
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
