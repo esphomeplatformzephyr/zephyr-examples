@@ -1,0 +1,40 @@
+esphome:
+  name: esp32c3-wifi-example
+
+zephyr:
+  variant: ESP32C3
+  # pick up mDNS that isn't in a release yet
+  framework:
+    source:
+      type: git
+      url: https://github.com/zephyrproject-rtos/zephyr
+      ref: main
+    refresh: 60min
+  kconfig_options:
+    CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
+
+logger:
+  level: VERBOSE
+  #hardware_uart: UART0 # monitor via UART pins
+
+wifi:
+  fast_connect: true
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: NONE
+
+api:
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s
