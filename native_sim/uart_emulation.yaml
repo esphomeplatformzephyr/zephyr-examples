@@ -1,0 +1,102 @@
+esphome:
+  name: nsim-uart-emulation-ex
+
+interval:
+  - interval: 10s
+    then:
+      # Scenario 1: the ESPHome device speaks first, the emulated peripheral answers.
+      # This write goes out over uart_bus's TX; the emulator watches those bytes and,
+      # once a configured trigger pattern is fully matched, writes its response back
+      # into uart_bus's RX -- as if a real peripheral had replied.
+      - uart.write:
+          id: uart_bus
+          data: "AT\r\n"
+      - delay: 100ms
+      - lambda: |-
+          // Bounded to available() -- read_byte() blocks for up to 100ms waiting for
+          // more data once the buffer is empty, and that busy-wait can hang forever
+          // under native_sim's simulated clock, so never loop it until it fails.
+          std::string resp;
+          uint8_t byte;
+          for (size_t i = id(uart_bus).available(); i > 0; i--) {
+            if (id(uart_bus).read_byte(&byte))
+              resp += static_cast<char>(byte);
+          }
+          ESP_LOGI("uart_emul_demo", "AT -> %s", resp.c_str());
+      # "AT+GMR\r\n" is configured with two responses below, so repeated triggers
+      # cycle through them in order (v1.0, then v1.1, then back to v1.0, ...).
+      - uart.write:
+          id: uart_bus
+          data: "AT+GMR\r\n"
+      - delay: 100ms
+      - lambda: |-
+          std::string resp;
+          uint8_t byte;
+          for (size_t i = id(uart_bus).available(); i > 0; i--) {
+            if (id(uart_bus).read_byte(&byte))
+              resp += static_cast<char>(byte);
+          }
+          ESP_LOGI("uart_emul_demo", "AT+GMR -> %s", resp.c_str());
+      # Scenario 2: the emulated peripheral speaks first, unprompted -- e.g. a modem
+      # sending an unsolicited status notification with no request from the device.
+      # This targets the emulator's own id (uart_emul), not the bus (uart_bus), so it
+      # injects straight into RX without going through trigger matching at all.
+      - uart.write:
+          id: uart_emul
+          data: "+CREG: 1\r\n"
+      - delay: 100ms
+      - lambda: |-
+          std::string resp;
+          uint8_t byte;
+          for (size_t i = id(uart_bus).available(); i > 0; i--) {
+            if (id(uart_bus).read_byte(&byte))
+              resp += static_cast<char>(byte);
+          }
+          ESP_LOGI("uart_emul_demo", "unprompted -> %s", resp.c_str());
+
+zephyr:
+  variant: nativesim
+  mac_address: "62:23:45:AF:B3:DE"
+
+logger:
+  level: VERBOSE
+
+network:
+
+api:
+
+ota:
+  - platform: esphome
+    port: 3233
+    password: !secret ota_password
+
+uart:
+  # `emulation:` replaces `port:`/`tx_pin:`/`rx_pin:` entirely -- it backs this bus with
+  # Zephyr's zephyr,uart-emul devicetree node instead of a real UART peripheral, so
+  # there's no wiring or physical device needed to exercise UART-speaking components.
+  - id: uart_bus
+    baud_rate: 115200
+    emulation:
+      # `id:` names the ZephyrUartEmulator instance backing this bus. Give it its own
+      # id (separate from the bus's `uart_bus` above) so automations/actions can target
+      # either "write out to the bus" (id: uart_bus) or "inject into the bus's RX
+      # path directly" (id: uart_emul, see scenario 2 in the interval above).
+      id: uart_emul
+      # `responses:` maps a trigger byte pattern (what the ESPHome device must write on
+      # TX, matched byte-for-byte and in order -- partial/overlapping matches are
+      # handled correctly) to the bytes the emulator writes back on RX once that whole
+      # pattern has been seen. Keys/values accept a quoted string (sent as UTF-8 bytes),
+      # a single integer, or a list of integers.
+      responses:
+        "AT\r\n": "OK\r\n"
+        # A list of responses under one trigger cycles through them on successive
+        # matches instead of always answering with the same bytes -- useful for
+        # simulating a peripheral whose reply depends on prior state.
+        "AT+GMR\r\n": ["v1.0\r\n", "v1.1\r\n"]
+    # Not required for emulation to work -- included here so the TX/RX bytes above are
+    # visible in the log as they're exchanged.
+    debug:
+      direction: BOTH
+
+debug:
+  update_interval: 60s
