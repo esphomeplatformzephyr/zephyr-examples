@@ -3,7 +3,6 @@ esphome:
 
 zephyr:
   variant: nrf54l15
-  # framework: type: zigbee is auto-selected because the zigbee: component is loaded
   log_level: INFO
   overlays:
     # Real MCUboot boot/slot0/slot1 layout, unlike nrf54l15dk_zigbee.yaml's

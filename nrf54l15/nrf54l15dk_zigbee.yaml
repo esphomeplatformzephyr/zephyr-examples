@@ -3,7 +3,6 @@ esphome:
 
 zephyr:
   variant: nrf54l15
-  # framework: type: zigbee is auto-selected because the zigbee: component is loaded
   log_level: INFO
   overlays:
     # Matches ncs-zigbee's own official reference overlay for this exact board
