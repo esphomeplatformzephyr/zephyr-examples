@@ -1,0 +1,151 @@
+esphome:
+  name: xiao-zigbee-mcuboot-example
+
+zephyr:
+  variant: nrf52
+  board: xiao_ble
+  log_level: INFO
+  overlays:
+    # xiao_ble's stock devicetree ships a UF2/SoftDevice-coexistence partition table
+    # (reserved_partition_0/code_partition/storage_partition/boot_partition), not the
+    # slot0/slot1 labels MCUboot needs. Both images redefine the same physical layout
+    # (each is built separately and must agree), then each points zephyr,code-partition
+    # at its own partition -- pointing both at the same one makes MCUboot link itself
+    # into the app's slot instead of its own.
+    #
+    # Sizing matches adafruit_feather_nrf52840_zigbee_mcuboot.yaml's proven layout
+    # (same 1 MB nRF52840 flash budget): 48K mcuboot + 2x 464K app slots + 12K storage
+    # + 32K zboss-nvram + 4K zboss-product-config = 1024K exactly. zboss_nvram/
+    # zboss_product_config are required -- the zigbee component's C++ erases them
+    # directly via PARTITION_ID(zboss_nvram)/PARTITION_ID(zboss_product_config).
+    app: |
+      /delete-node/ &reserved_partition_0;
+      /delete-node/ &code_partition;
+      /delete-node/ &storage_partition;
+      /delete-node/ &boot_partition;
+
+      &flash0 {
+        partitions {
+          compatible = "fixed-partitions";
+          #address-cells = <1>;
+          #size-cells = <1>;
+
+          boot_partition: partition@0 {
+            reg = <0x0 DT_SIZE_K(48)>;
+          };
+          slot0_partition: partition@c000 {
+            reg = <0xc000 DT_SIZE_K(464)>;
+          };
+          slot1_partition: partition@80000 {
+            reg = <0x80000 DT_SIZE_K(464)>;
+          };
+          storage_partition: partition@f4000 {
+            reg = <0xf4000 DT_SIZE_K(12)>;
+          };
+          zboss_nvram: partition@f7000 {
+            reg = <0xf7000 DT_SIZE_K(32)>;
+          };
+          zboss_product_config: partition@ff000 {
+            reg = <0xff000 DT_SIZE_K(4)>;
+          };
+        };
+      };
+
+      / {
+        chosen {
+          zephyr,code-partition = &slot0_partition;
+          ncs,zigbee-timer = &timer2;
+        };
+      };
+
+      &timer2 {
+        status = "okay";
+      };
+    mcuboot: |
+      /delete-node/ &reserved_partition_0;
+      /delete-node/ &code_partition;
+      /delete-node/ &storage_partition;
+      /delete-node/ &boot_partition;
+
+      &flash0 {
+        partitions {
+          compatible = "fixed-partitions";
+          #address-cells = <1>;
+          #size-cells = <1>;
+
+          boot_partition: partition@0 {
+            reg = <0x0 DT_SIZE_K(48)>;
+          };
+          slot0_partition: partition@c000 {
+            reg = <0xc000 DT_SIZE_K(464)>;
+          };
+          slot1_partition: partition@80000 {
+            reg = <0x80000 DT_SIZE_K(464)>;
+          };
+          storage_partition: partition@f4000 {
+            reg = <0xf4000 DT_SIZE_K(12)>;
+          };
+          zboss_nvram: partition@f7000 {
+            reg = <0xf7000 DT_SIZE_K(32)>;
+          };
+          zboss_product_config: partition@ff000 {
+            reg = <0xff000 DT_SIZE_K(4)>;
+          };
+        };
+      };
+
+      / {
+        chosen {
+          zephyr,code-partition = &boot_partition;
+        };
+      };
+  kconfig_options:
+    mcuboot:
+      CONFIG_UART_CONSOLE: false
+      CONFIG_CONSOLE: false
+
+zigbee:
+  model: zigbee_test
+  wipe_on_boot: true
+  on_join:
+    then:
+      - logger.log: "Joined network"
+
+time:
+  - platform: zigbee
+
+logger:
+  hardware_uart: USB_CDC
+
+# Configuring ota: is what actually flips on real MCUboot sysbuild image building
+# for the zigbee framework (see esphome/components/zephyr/variants/nrf52.py) --
+# without it, only the (unsigned) app image gets built, and this whole overlay/
+# partition setup goes untested. hardware_uart: CDC, not CDC1: xiao_ble's stock
+# devicetree already includes Nordic's shared cdc_acm_serial.dtsi snippet (one
+# USB CDC-ACM interface, wired to console/mcumgr/etc by that snippet's own
+# chosen properties), so CDC1 would just resolve back to that same interface
+# anyway -- CDC says so plainly instead of implying a second one exists.
+ota:
+  - platform: zephyr_mcumgr
+    transport:
+      hardware_uart: CDC
+
+# used to determine if hardware reboots are occuring
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s
+
+binary_sensor:
+  - platform: template
+    name: "Garage Door Open 1"
+
+switch:
+  - platform: template
+    name: "Template Switch"
+    optimistic: true

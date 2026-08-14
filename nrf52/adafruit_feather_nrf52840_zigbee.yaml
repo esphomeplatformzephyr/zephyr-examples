@@ -1,0 +1,80 @@
+esphome:
+  name: nrf52-zigbee-example
+
+zephyr:
+  variant: nrf52
+  overlays:
+    app: |
+      /delete-node/ &slot0_partition;
+      /delete-node/ &slot1_partition;
+      /delete-node/ &storage_partition;
+
+      &flash0 {
+      	partitions {
+      		slot0_partition: partition@0 {
+      			compatible = "zephyr,mapped-partition";
+      			label = "image-0";
+      			reg = <0x0 DT_SIZE_K(980)>;
+      		};
+
+      		storage_partition: partition@f5000 {
+      			compatible = "zephyr,mapped-partition";
+      			label = "storage";
+      			reg = <0xf5000 DT_SIZE_K(8)>;
+      		};
+
+       		zboss_nvram: partition@f7000 {
+      			compatible = "zephyr,mapped-partition";
+      			label = "zboss-nvram";
+      			reg = <0xf7000 DT_SIZE_K(32)>;
+      		};
+
+      		zboss_product_config: partition@ff000 {
+      			compatible = "zephyr,mapped-partition";
+      			label = "zboss-product-config";
+      			reg = <0xff000 DT_SIZE_K(4)>;
+      		};
+      	};
+      };
+
+      / {
+      	chosen {
+      		ncs,zigbee-timer = &timer2;
+      	};
+      };
+
+      &timer2 {
+      	status = "okay";
+      };
+
+zigbee:
+  model: zigbee_test
+  wipe_on_boot: true
+  on_join:
+    then:
+      - logger.log: "Joined network"
+
+time:
+  - platform: zigbee
+
+logger:
+
+# used to determine if hardware reboots are occuring
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s
+
+binary_sensor:
+  - platform: template
+    name: "Garage Door Open 1"
+
+switch:
+  - platform: template
+    name: "Template Switch"
+    optimistic: true

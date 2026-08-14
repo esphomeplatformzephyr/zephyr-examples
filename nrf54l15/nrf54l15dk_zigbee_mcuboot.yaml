@@ -1,0 +1,178 @@
+esphome:
+  name: nrf54l15-zigbee-mcuboot
+
+zephyr:
+  variant: nrf54l15
+  # framework: type: zigbee is auto-selected because the zigbee: component is loaded
+  log_level: INFO
+  overlays:
+    # Real MCUboot boot/slot0/slot1 layout, unlike nrf54l15dk_zigbee.yaml's
+    # direct-flash single partition. Starts from the stock cpuapp partition
+    # table (zephyr/dts/vendor/nordic/nrf54l15_cpuapp_partition.dtsi: 62K
+    # mcuboot -- deliberately not rounded up to 64K, "to allow FPROTECT to be
+    # enabled by default" per that file's own comment -- then a 2K gap up to
+    # 0x10000, then 2x 712K app slots + 36K storage, summing to the 1524K
+    # application-core flash exactly) and shrinks the two app slots
+    # symmetrically (712K -> 692K each, kept a multiple of the 4K erase block
+    # size MCUboot requires slot0/slot1 to divide evenly -- 695K doesn't) to
+    # make room for the zboss_nvram/zboss_product_config partitions the
+    # zigbee component's C++ erases directly -- same trade nrf52's
+    # adafruit_feather_nrf52840_zigbee_mcuboot.yaml makes on its own stock
+    # table.
+    app: |
+      /delete-node/ &boot_partition;
+      /delete-node/ &slot0_partition;
+      /delete-node/ &slot1_partition;
+      /delete-node/ &storage_partition;
+
+      &cpuapp_rram {
+        partitions {
+          boot_partition: partition@0 {
+            compatible = "zephyr,mapped-partition";
+            label = "mcuboot";
+            reg = <0x0 DT_SIZE_K(62)>;
+          };
+
+          slot0_partition: partition@10000 {
+            compatible = "zephyr,mapped-partition";
+            label = "image-0";
+            reg = <0x10000 DT_SIZE_K(692)>;
+          };
+
+          slot1_partition: partition@bd000 {
+            compatible = "zephyr,mapped-partition";
+            label = "image-1";
+            reg = <0xbd000 DT_SIZE_K(692)>;
+          };
+
+          storage_partition: partition@16a000 {
+            compatible = "zephyr,mapped-partition";
+            label = "storage";
+            reg = <0x16a000 DT_SIZE_K(40)>;
+          };
+
+          zboss_nvram: partition@174000 {
+            compatible = "zephyr,mapped-partition";
+            label = "zboss-nvram";
+            reg = <0x174000 DT_SIZE_K(32)>;
+          };
+
+          zboss_product_config: partition@17c000 {
+            compatible = "zephyr,mapped-partition";
+            label = "zboss-product-config";
+            reg = <0x17c000 DT_SIZE_K(4)>;
+          };
+        };
+      };
+
+      / {
+        chosen {
+          ncs,zigbee-timer = &timer20;
+        };
+      };
+
+      &timer20 {
+        status = "okay";
+      };
+    # mcuboot itself needs to see the same flash map to know where its two
+    # candidate slots are -- but not the zigbee timer bits above, which would
+    # needlessly pull the timer driver into mcuboot's small build for no benefit.
+    mcuboot: |
+      /delete-node/ &boot_partition;
+      /delete-node/ &slot0_partition;
+      /delete-node/ &slot1_partition;
+      /delete-node/ &storage_partition;
+
+      &cpuapp_rram {
+        partitions {
+          boot_partition: partition@0 {
+            compatible = "zephyr,mapped-partition";
+            label = "mcuboot";
+            reg = <0x0 DT_SIZE_K(62)>;
+          };
+
+          slot0_partition: partition@10000 {
+            compatible = "zephyr,mapped-partition";
+            label = "image-0";
+            reg = <0x10000 DT_SIZE_K(692)>;
+          };
+
+          slot1_partition: partition@bd000 {
+            compatible = "zephyr,mapped-partition";
+            label = "image-1";
+            reg = <0xbd000 DT_SIZE_K(692)>;
+          };
+
+          storage_partition: partition@16a000 {
+            compatible = "zephyr,mapped-partition";
+            label = "storage";
+            reg = <0x16a000 DT_SIZE_K(40)>;
+          };
+
+          zboss_nvram: partition@174000 {
+            compatible = "zephyr,mapped-partition";
+            label = "zboss-nvram";
+            reg = <0x174000 DT_SIZE_K(32)>;
+          };
+
+          zboss_product_config: partition@17c000 {
+            compatible = "zephyr,mapped-partition";
+            label = "zboss-product-config";
+            reg = <0x17c000 DT_SIZE_K(4)>;
+          };
+        };
+      };
+
+      / {
+        chosen {
+          /* The board's own stock devicetree points zephyr,code-partition at
+             slot0_partition (correct for the app image) -- nothing overrides
+             it for the mcuboot sysbuild image, so without this mcuboot itself
+             silently links at slot0's address (0x10000) instead of
+             boot_partition's (0x0), and ends up flashed on top of the app
+             it's supposed to be booting. */
+          zephyr,code-partition = &boot_partition;
+        };
+      };
+
+ota:
+  platform: zephyr_mcumgr
+  transport:
+    ble: false
+    # This chip has no USB device controller at all -- CDC-ACM isn't an option
+    # here (unlike the XIAO nRF52840, whose transport this component was
+    # originally written against). Shares the physical UART the logger
+    # already uses; the mcumgr SMP framing tolerates interleaved log noise.
+    hardware_uart: UART0
+
+zigbee:
+  model: zigbee_test
+  wipe_on_boot: true
+  on_join:
+    then:
+      - logger.log: "Joined network"
+
+time:
+  - platform: zigbee
+
+logger:
+
+# used to determine if hardware reboots are occuring
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s
+
+binary_sensor:
+  - platform: template
+    name: "Garage Door Open 1"
+
+switch:
+  - platform: template
+    name: "Template Switch"
+    optimistic: true

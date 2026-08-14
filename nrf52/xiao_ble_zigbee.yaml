@@ -1,0 +1,89 @@
+esphome:
+  name: xiao-zigbee-example
+
+zephyr:
+  variant: nrf52
+  board: xiao_ble
+  log_level: INFO
+  overlays:
+    # xiao_ble's stock devicetree ships a UF2/SoftDevice-coexistence partition table
+    # (reserved_partition_0/code_partition/storage_partition/boot_partition) -- none of
+    # that is needed here (no SoftDevice, no UF2 bootloader), so it's replaced outright
+    # with a flat layout: one big app partition plus the two zboss partitions the
+    # zigbee component's C++ code references directly (PARTITION_ID(zboss_nvram) /
+    # PARTITION_ID(zboss_product_config)). Direct-flash, no MCUboot -- matches
+    # ncs-zigbee's own default devicetree, which has no boot/slot1 partitions either.
+    # See adafruit_feather_nrf52840_zigbee.yaml for the same layout on that board.
+    app: |
+      /delete-node/ &reserved_partition_0;
+      /delete-node/ &code_partition;
+      /delete-node/ &storage_partition;
+      /delete-node/ &boot_partition;
+
+      &flash0 {
+        partitions {
+          compatible = "fixed-partitions";
+          #address-cells = <1>;
+          #size-cells = <1>;
+
+          slot0_partition: partition@0 {
+            reg = <0x0 DT_SIZE_K(980)>;
+          };
+
+          storage_partition: partition@f5000 {
+            reg = <0xf5000 DT_SIZE_K(8)>;
+          };
+
+          zboss_nvram: partition@f7000 {
+            reg = <0xf7000 DT_SIZE_K(32)>;
+          };
+
+          zboss_product_config: partition@ff000 {
+            reg = <0xff000 DT_SIZE_K(4)>;
+          };
+        };
+      };
+
+      / {
+        chosen {
+          zephyr,code-partition = &slot0_partition;
+          ncs,zigbee-timer = &timer2;
+        };
+      };
+
+      &timer2 {
+        status = "okay";
+      };
+
+zigbee:
+  model: zigbee_test
+  wipe_on_boot: true
+  on_join:
+    then:
+      - logger.log: "Joined network"
+
+time:
+  - platform: zigbee
+
+logger:
+  hardware_uart: USB_CDC
+
+# used to determine if hardware reboots are occuring
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s
+
+binary_sensor:
+  - platform: template
+    name: "Garage Door Open 1"
+
+switch:
+  - platform: template
+    name: "Template Switch"
+    optimistic: true
