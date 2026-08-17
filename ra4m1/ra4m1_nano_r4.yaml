@@ -1,0 +1,48 @@
+esphome:
+  name: arduino-nano-r4
+
+zephyr:
+  variant: RA4M1
+  # This board is only in custom_zephyr_boards
+  board: arduino_nano_r4
+  board_source:
+    type: git
+    url: https://github.com/esphomeplatformzephyr/custom_zephyr_boards
+    ref: main
+  # Carve out the storage_partition needed for preferences
+  overlays:
+    app: |
+      &flash0 {
+          partitions {
+              compatible = "fixed-partitions";
+              #address-cells = <1>;
+              #size-cells = <1>;
+
+              code_partition: partition@4000 {
+                  label = "code";
+                  reg = <0x4000 0x3a000>;
+                  read-only;
+              };
+
+              storage_partition: partition@3e000 {
+                  label = "storage";
+                  reg = <0x3e000 0x2000>;
+              };
+          };
+      };
+
+# Default is UART1
+logger:
+
+output:
+  - platform: gpio
+    id: led_output
+    pin: P204
+
+interval:
+  - interval: 3s
+    then:
+      - logger.log: "interval tick"
+      - output.turn_on: led_output
+      - delay: 2s
+      - output.turn_off: led_output

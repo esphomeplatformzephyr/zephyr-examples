@@ -1,0 +1,45 @@
+esphome:
+  name: test-rp2040-w
+
+zephyr:
+  variant: rp2040
+  board: rpi_pico/rp2040/w
+  framework:
+    source:
+      type: git
+      url: https://github.com/zephyrproject-rtos/zephyr
+      ref: main
+    refresh: 60min
+  kconfig_options:
+    CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
+  overlays:
+    app: |
+      &flash0 {
+          partitions {
+              code_partition: partition@100 {
+                  reg = <0x100 0x1EFF00>;
+              };
+              storage_partition: partition@1F0000 {
+                  compatible = "zephyr,mapped-partition";
+                  label = "storage";
+                  reg = <0x1F0000 0x10000>;
+              };
+          };
+      };
+
+logger:
+  level: DEBUG
+
+wifi:
+#  fast_connect: true
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: NONE
+  min_rssi: -40
+
+api:
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    update_interval: 60s

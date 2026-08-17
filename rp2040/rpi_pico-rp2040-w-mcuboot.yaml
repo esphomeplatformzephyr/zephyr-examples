@@ -1,0 +1,37 @@
+esphome:
+  name: test-rp2040-w-mcuboot
+
+zephyr:
+  variant: rp2040
+  board: rpi_pico/rp2040/w/mcuboot
+  framework:
+    source:
+      type: git
+      url: https://github.com/rwrozelle/zephyr
+      ref: rp2040-mcuboot-wifi-heap-fix
+    refresh: 60min
+  kconfig_options:
+    CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
+  advanced:
+    bootloader: mcuboot
+
+logger:
+  level: DEBUG
+
+wifi:
+#  fast_connect: true
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: NONE
+  min_rssi: -40
+
+api:
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    update_interval: 60s
