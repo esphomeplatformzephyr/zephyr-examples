@@ -1,0 +1,19 @@
+# when overriding to pyocd, run command: pyocd pack install efr32mg24b220f1536im48
+esphome:
+  name: xiao-mg24-example
+
+zephyr:
+  variant: efr32mg24
+  board: xiao_mg24
+  advanced:
+    runner: pyocd
+
+logger:
+  level: VERBOSE
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
