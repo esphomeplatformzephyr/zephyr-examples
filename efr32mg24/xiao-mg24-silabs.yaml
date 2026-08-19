@@ -1,0 +1,39 @@
+# xiao_mg24 needs the ardunio openocd if you compile with openocd (default)
+# requires a clean build environment ('esphome clean') if correcting from wrong openocd tool
+#export PATH="$HOME/.arduino15/packages/SiliconLabs/tools/openocd/0.12.0-arduino1-static/bin":$PATH
+#export OPENOCD_SCRIPTS="$HOME/.arduino15/packages/SiliconLabs/tools/openocd/0.12.0-arduino1-static/share/openocd/scripts"
+
+# UNVERIFIED steps to use framework: type: silabs: THIS HAS NOT BEEN TESTED!
+# --- Provisioning steps to enable real secure boot for framework: type: silabs (HSE/EFR32MG24) ---
+# 1. Generate a signing key (if not already using one):
+#      imgtool keygen -k my-signing-key.pem -t ecdsa-p256
+# 2. Extract the public key:
+#      imgtool getpub -k my-signing-key.pem > my-pubkey.pem
+# 3. Write the public key into the chip's Secure Engine OTP (PERMANENT, IRREVERSIBLE):
+#      commander security writekey --sign my-pubkey.pem
+# 4. Enable secure boot enforcement (PERMANENT, IRREVERSIBLE):
+#      commander security writeconfig --secureboot --nostore
+# 5. Verify:
+#      commander security status    # should report "Secure Boot: enabled"
+# Source: https://docs.silabs.com/zephyr/2026.6.0/zephyr-bootloader/mcuboot-secure-boot
+# NOTE: without provisioning, MCUboot on this board currently fails to boot at all
+# ("Primary image: magic=bad") when framework: type: silabs is used -- see session notes.
+# type: zephyr (mainline) works without any of this.
+
+esphome:
+  name: xiao-mg24-example
+
+zephyr:
+  variant: efr32mg24
+  board: xiao_mg24
+  framework:
+    type: silabs
+logger:
+  level: VERBOSE
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
