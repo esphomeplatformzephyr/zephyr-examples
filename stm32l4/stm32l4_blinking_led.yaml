@@ -1,0 +1,30 @@
+esphome:
+  name: stm32l4-blinking-led
+
+zephyr:
+  variant: STM32L4
+  # board: nucleo_l476rg/stm32l476xx
+  board: nucleo_l476rg
+  advanced:
+    runner: openocd
+
+logger:
+
+output:
+  - platform: gpio
+    pin: 5  # PA5
+    id: led_output
+
+interval:
+  - interval: 500ms
+    startup_delay: 1s
+    then:
+      - output.turn_on: led_output
+      - delay: 100ms
+      - output.turn_off: led_output
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    update_interval: 60s
+
