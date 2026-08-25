@@ -1,0 +1,77 @@
+esphome:
+  name: stm32f4-blinking-led
+
+zephyr:
+  variant: STM32F4
+  board: blackpill_f411ce
+  single_slot: true
+  # Sector 0:   0 –  16,384    (16KB)
+  # Sector 1:  16,384 –  32,768    (16KB)
+  # Sector 2:  32,768 –  49,152    (16KB)
+  # Sector 3:  49,152 –  65,536    (16KB)
+  # Sector 4:  65,536 – 131,072    (64KB)
+  # Sector 5: 131,072 – 262,144   (128KB)
+  # Sector 6: 262,144 – 393,216   (128KB)
+  # Sector 7: 393,216 – 524,288   (128KB)
+  # storage_partition sector size is capped at 65,535B (Zephyr's settings_nvs.c) --
+  # sectors 2-3 are the only ones free past boot_partition.
+  overlays:
+    app: |
+      /delete-node/ &slot0_partition;
+      /delete-node/ &slot1_partition;
+      /delete-node/ &scratch_partition;
+
+      &flash0 {
+        partitions {
+          storage_partition: partition@8000 {
+            label = "storage";
+            reg = <0x00008000 0x00008000>;
+          };
+
+          slot0_partition: partition@10000 {
+            label = "image-0";
+            reg = <0x00010000 0x00070000>;
+          };
+        };
+      };
+
+      / {
+        chosen {
+          zephyr,code-partition = &slot0_partition;
+        };
+      };
+    mcuboot: |
+      /delete-node/ &slot0_partition;
+      /delete-node/ &slot1_partition;
+      /delete-node/ &scratch_partition;
+
+      &flash0 {
+        partitions {
+          storage_partition: partition@8000 {
+            label = "storage";
+            reg = <0x00008000 0x00008000>;
+          };
+
+          slot0_partition: partition@10000 {
+            label = "image-0";
+            reg = <0x00010000 0x00070000>;
+          };
+        };
+      };
+
+logger:
+  hardware_uart: USB_CDC
+
+output:
+  - platform: gpio
+    id: led_output
+    pin:
+      number: PC13
+      inverted: true
+
+interval:
+  - interval: 1s
+    then:
+      - output.turn_on: led_output
+      - delay: 500ms
+      - output.turn_off: led_output
