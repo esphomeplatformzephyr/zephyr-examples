@@ -1,0 +1,58 @@
+# Successful approach to uploading:
+# FT232 (USB2UART) on /dev/ttyUSB0 RX <- TX (PA9)
+# ST-Link/V2 wired to SWD 4 pins GND, SWCLK, SDIO, 3.3V so providing power also.
+# esphome run <config-file> --device /dev/ttyUSB0 
+# it ignores /dev/ttyUSB0 during use of openocd, but then logs from it afterwards
+
+esphome:
+  name: stm32f1-blinking-led.yaml
+
+zephyr:
+  variant: STM32F1
+  # This is a custom board, default runner id openocd
+  board: weact_bluepillplus_f103cb
+  board_source:
+    type: git
+    url: https://github.com/esphomeplatformzephyr/custom_zephyr_boards
+    ref: main
+  advanced:
+    bootloader: none
+  # The board's own dts already gives code_partition the full 128K -- carve an 8K
+  # storage_partition out of the tail (same size as ra4m1's), reusing the
+  # code_partition label so the board's chosen zephyr,code-partition still resolves.
+  overlays:
+    app: |
+      &flash0 {
+          partitions {
+              compatible = "fixed-partitions";
+              #address-cells = <1>;
+              #size-cells = <1>;
+
+              code_partition: partition@0 {
+                  label = "code";
+                  reg = <0x0 0x1e000>;
+                  read-only;
+              };
+
+              storage_partition: partition@1e000 {
+                  label = "storage";
+                  reg = <0x1e000 0x2000>;
+              };
+          };
+      };
+
+# Default is usart1
+logger:
+
+output:
+  - platform: gpio
+    id: led_output
+    pin: PB2
+
+interval:
+  - interval: 3s
+    then:
+      - logger.log: "interval tick"
+      - output.turn_on: led_output
+      - delay: 2s
+      - output.turn_off: led_output
