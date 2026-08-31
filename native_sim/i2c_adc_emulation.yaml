@@ -3,7 +3,8 @@ esphome:
 
 zephyr:
   variant: nativesim
-  mac_address: "62:23:45:AF:B3:DE"
+  advanced:
+    mac_address: "62:23:45:AF:B3:DE"
 
 logger:
   level: VERBOSE

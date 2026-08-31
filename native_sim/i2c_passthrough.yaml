@@ -4,7 +4,8 @@ esphome:
 zephyr:
   variant: NATIVESIM
   board: native_sim/native/64
-  mac_address: "62:23:45:AF:B3:DE"
+  advanced:
+    mac_address: "62:23:45:AF:B3:DE"
 
 logger:
   level: VERBOSE
