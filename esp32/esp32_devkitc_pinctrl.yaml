@@ -1,0 +1,66 @@
+# Demonstrates several things together on a real ESP32 DevKitC board:
+# - `uart: port: UART2` (TX=GPIO17, RX=GPIO16)  GPIO16 and GPIO17 are wired together for uart testing.
+# - `i2c:` on the board's default pins (SDA=GPIO21, SCL=GPIO22) driving a real BME280 sensor.
+# - `CONFIG_ESP32_REGION_1_NOINIT: true` reclaims internal DRAM headroom by spilling
+#   Zephyr's `.noinit` data (system heap, net buffers, TCP connection slabs, etc.)
+#   into SRAM1 (dram1_0_seg) instead of the more crowded SRAM2 (dram0_0_seg).
+#   CAUTION: this is off by default whenever MCUboot is the bootloader (as it is
+#   here), and upstream's reason for that isn't documented. This was tested, but
+#   recommend heavily testing this due to variance with upstream setting.
+
+esphome:
+  name: esp32-devkitc-pinctrl-example
+
+zephyr:
+  variant: ESP32
+  kconfig_options:
+    CONFIG_ESP32_REGION_1_NOINIT: true
+
+logger:
+  level: DEBUG
+
+uart:
+  - id: uart2_loop
+    port: UART2
+    baud_rate: 115200
+    debug:
+      direction: BOTH
+      dummy_receiver: true
+
+interval:
+  - interval: 20s
+    then:
+      - uart.write:
+          id: uart2_loop
+          data: "ping\n"
+
+network:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+i2c:
+  scan: false
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: bme280_i2c
+    address: 0x76
+    temperature:
+      name: "BME280 Temperature"
+    pressure:
+      name: "BME280 Pressure"
+    humidity:
+      name: "BME280 Humidity"
+    update_interval: 60s
