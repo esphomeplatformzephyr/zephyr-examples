@@ -7,9 +7,7 @@ zephyr:
   framework:
     source:
       type: git
-      url: https://github.com/zephyrproject-rtos/zephyr
       ref: main
-    refresh: 60min
   kconfig_options:
     CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
   overlays:

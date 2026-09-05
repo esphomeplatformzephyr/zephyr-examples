@@ -7,9 +7,7 @@ zephyr:
   framework:
     source:
       type: git
-      url: https://github.com/rwrozelle/zephyr
-      ref: rp2040-mcuboot-wifi-heap-fix
-    refresh: 60min
+      ref: main
   kconfig_options:
     CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
   advanced:
