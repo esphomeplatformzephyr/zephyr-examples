@@ -1,0 +1,84 @@
+esphome:
+  name: rp2350-w-mcuboot
+
+zephyr:
+  variant: rp2350
+  board: rpi_pico2/rp2350a/m33/w/mcuboot
+  framework:
+    source:
+      type: git
+      ref: main
+  kconfig_options:
+    CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
+  advanced:
+    bootloader: mcuboot
+  # board does not have definition for uart1, so have to add so we can use UART1
+  # in uart component.
+  overlays:
+    app: |
+      &pinctrl {
+          uart1_default: uart1_default {
+              group1 { pinmux = <UART1_TX_P8>; };
+              group2 { pinmux = <UART1_RX_P9>; input-enable; };
+          };
+      };
+
+      &uart1 {
+          status = "okay";
+          current-speed = <115200>;
+          pinctrl-0 = <&uart1_default>;
+          pinctrl-names = "default";
+      };
+
+logger:
+  level: DEBUG
+
+uart:
+  - id: uart1_loop
+    # see above tx: 8, rx: 9
+    port: UART1
+    baud_rate: 115200
+    debug:
+      direction: BOTH
+      dummy_receiver: true
+
+interval:
+  - interval: 20s
+    then:
+#      - logger.log: "write ping"
+      - uart.write:
+          id: uart1_loop
+          data: "ping\n"
+#      - logger.log: "ping written"
+
+wifi:
+#  fast_connect: true
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: NONE
+  min_rssi: -40
+
+api:
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+# RP2350 has no sda:/scl: pin remap:
+# using board's own pre-wired I2C pins: SDA = GPIO4, SCL = GPIO5
+i2c:
+  scan: false
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    update_interval: 60s
+  - platform: bme280_i2c
+    address: 0x76
+    temperature:
+      name: "BME280 Temperature"
+    pressure:
+      name: "BME280 Pressure"
+    humidity:
+      name: "BME280 Humidity"
+    update_interval: 60s
