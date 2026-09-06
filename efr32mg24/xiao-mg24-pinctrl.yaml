@@ -1,0 +1,51 @@
+# xiao_mg24 needs the ardunio openocd if you compile with openocd (default)
+# requires a clean build environment ('esphome clean') if correcting from wrong openocd tool
+#export PATH="$HOME/.arduino15/packages/SiliconLabs/tools/openocd/0.12.0-arduino1-static/bin":$PATH
+#export OPENOCD_SCRIPTS="$HOME/.arduino15/packages/SiliconLabs/tools/openocd/0.12.0-arduino1-static/share/openocd/scripts"
+esphome:
+  name: xiao-mg24-example
+
+zephyr:
+  variant: efr32mg24
+  board: xiao_mg24
+
+logger:
+  level: VERBOSE
+
+uart:
+  - id: uart1_loop
+    # UART1=eusart1 TX: PC6, RX: PC7, wired together for testing
+    port: UART1
+    baud_rate: 115200
+    debug:
+      direction: BOTH
+      dummy_receiver: true
+
+interval:
+  - interval: 20s
+    then:
+#      - logger.log: "write ping"
+      - uart.write:
+          id: uart1_loop
+          data: "ping\n"
+#      - logger.log: "ping written"
+
+i2c:
+  #i2c0 SCL: PC4, SDA: PC5
+  scan: false
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: bme280_i2c
+    address: 0x76
+    temperature:
+      name: "BME280 Temperature"
+    pressure:
+      name: "BME280 Pressure"
+    humidity:
+      name: "BME280 Humidity"
+    update_interval: 60s

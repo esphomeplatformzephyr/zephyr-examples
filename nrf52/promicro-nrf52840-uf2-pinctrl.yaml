@@ -1,0 +1,101 @@
+# board has adafruit_nrf52_sd140_v6 installed
+# To flash via UF2:
+# Put the board in bootloader mode by a double-tap of the reset button.
+# on debian it should be /dev/sd*, for example /dev/sdb so: udisksctl mount -b /dev/sdb
+# It should re-enumerate as the NICENANO mass-storage drive
+# cp .esphome/build/<device-name>/.west_build/zephyr/zephyr/zephyr.uf2 /media/mc/NICENANO/
+# (the doubled "zephyr/zephyr" is correct, not a typo -- west's own nested build layout)
+# The board auto-flashes and reboots into the new firmware the moment the
+# copy finishes -- the drive disappearing on its own is expected, not an error.
+esphome:
+  name: test-nrf52
+
+zephyr:
+  variant: NRF52
+  # This is a MUST for the promicro with the adafruit bootloader
+  board: promicro_nrf52840/nrf52840/uf2
+  advanced:
+    bootloader: adafruit_nrf52_sd140_v6
+  # board does not have definition for uart1, so have to add so we can use UART1
+  # in uart component. TX=P0.22, RX=P0.24 -- confirmed free (not used by uart0,
+  # i2c0, i2c1, spi2, the onboard LED/PWM, or the hardware reset pin).
+  overlays:
+    app: |
+      &pinctrl {
+          uart1_default: uart1_default {
+              group1 {
+                  psels = <NRF_PSEL(UART_TX, 0, 22)>;
+              };
+              group2 {
+                  psels = <NRF_PSEL(UART_RX, 0, 24)>;
+                  bias-pull-up;
+              };
+          };
+          uart1_sleep: uart1_sleep {
+              group1 {
+                  psels = <NRF_PSEL(UART_TX, 0, 22)>,
+                          <NRF_PSEL(UART_RX, 0, 24)>;
+                  low-power-enable;
+              };
+          };
+      };
+
+      &uart1 {
+          status = "okay";
+          current-speed = <115200>;
+          pinctrl-0 = <&uart1_default>;
+          pinctrl-1 = <&uart1_sleep>;
+          pinctrl-names = "default", "sleep";
+      };
+
+
+logger:
+  level: VERBOSE
+
+uart:
+  #UART2 = &uart1
+  - id: uart2_loop
+    port: UART2
+    baud_rate: 115200
+    debug:
+      direction: BOTH
+      dummy_receiver: true
+
+interval:
+  - interval: 20s
+    then:
+#      - logger.log: "write ping"
+      - uart.write:
+          id: uart2_loop
+          data: "ping\n"
+#      - logger.log: "ping written"
+  - interval: 3s
+    then:
+      - switch.turn_on: led
+      - delay: 2s
+      - switch.turn_off: led
+
+switch:
+  - platform: gpio
+    id: led
+    pin: P0.15
+
+i2c:
+# &i2c0 SDA = P1.00, SCL = P0.11
+  scan: false
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: bme280_i2c
+    address: 0x76
+    temperature:
+      name: "BME280 Temperature"
+    pressure:
+      name: "BME280 Pressure"
+    humidity:
+      name: "BME280 Humidity"
+    update_interval: 60s
