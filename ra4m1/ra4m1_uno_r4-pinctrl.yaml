@@ -1,14 +1,9 @@
 esphome:
-  name: arduino-nano-r4
+  name: arduino-uno-r4
 
 zephyr:
   variant: RA4M1
-  # This board is only in custom_zephyr_boards
-  board: arduino_nano_r4
-  board_source:
-    type: git
-    url: https://github.com/esphomeplatformzephyr/custom_zephyr_boards
-    ref: main
+  board: arduino_uno_r4@wifi
   # Carve out the storage_partition needed for preferences
   overlays:
     app: |
@@ -31,13 +26,15 @@ zephyr:
           };
       };
 
-# Default is UART0=&uart2
 logger:
+  # default console is UART0 = &uart2 -- no hardware_uart override needed.
+  level: VERBOSE
 
 output:
+  # board's own led0 alias -- Arduino header D13, ioport1 pin 2 (P102).
   - platform: gpio
     id: led_output
-    pin: P204
+    pin: P102
 
 interval:
   - interval: 3s
@@ -46,3 +43,25 @@ interval:
       - output.turn_on: led_output
       - delay: 2s
       - output.turn_off: led_output
+
+i2c:
+# &iic0 -  Qwiic connector
+# &iic1 SCL1 = P100, SDA1 = P101
+  dts_node_override: iic1
+  scan: false
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: bme280_i2c
+    address: 0x76
+    temperature:
+      name: "BME280 Temperature"
+    pressure:
+      name: "BME280 Pressure"
+    humidity:
+      name: "BME280 Humidity"
+    update_interval: 60s
