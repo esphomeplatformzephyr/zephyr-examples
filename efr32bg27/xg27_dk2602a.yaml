@@ -1,0 +1,62 @@
+esphome:
+  name: xg27-dk2602a-example
+
+zephyr:
+  variant: efr32bg27
+
+logger:
+
+# No WiFi/Ethernet/OpenThread on this chip (BLE-only Blue Gecko, no ieee802154
+# radio at all -- unlike EFR32MG24), so BLE is the only wireless transport
+# available. Just the plain advertising/connection server here; OTA-over-BLE
+# (zephyr_mcumgr) isn't supported for this variant yet (pending separate
+# OTA/mcuboot hardware validation).
+zephyr_ble_server:
+
+output:
+  - platform: gpio
+    id: led0_output
+    pin: PA4  # LED0, active-high (board overrides thunderboard.dtsi's own
+              # active-high default with the same polarity, just a different pin)
+
+switch:
+  - platform: output
+    id: led0
+    name: "LED0"
+    output: led0_output
+
+binary_sensor:
+  - platform: gpio
+    id: button0
+    name: "Button 0"
+    pin:
+      number: PB3  # SW0 (this board only has one user button, unlike EFR32MG24's two)
+      mode: INPUT_PULLUP
+      inverted: true
+    on_press:
+      - switch.turn_on: led0
+    on_release:
+      - switch.turn_off: led0
+
+i2c:
+  # sda/scl intentionally omitted: resolved automatically from the board's fixed
+  # i2c0_default pinctrl node (SDA=PD2, SCL=PD3).
+
+# Si7021 (RHT) and VEML6035 (ambient light) from the onboard Thunderboard sensor
+# mezzanine, shared with SiWx917-DK2605A -- same htu21d/veml7700 driver reuse as
+# that board's own example. Both sensors are gated behind a GPIO-controlled power
+# switch that this variant's own codegen already forces on (see efr32bg27.py); no
+# extra config needed here for that.
+sensor:
+  - platform: htu21d
+    temperature:
+      name: "Si7021 Temperature"
+    humidity:
+      name: "Si7021 Humidity"
+    update_interval: 60s
+
+  - platform: veml7700
+    address: 0x29
+    ambient_light:
+      name: "VEML6035 Lux"
+    update_interval: 60s
