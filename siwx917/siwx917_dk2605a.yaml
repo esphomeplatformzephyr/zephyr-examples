@@ -1,0 +1,80 @@
+esphome:
+  name: siwx917-dk2605a-example
+
+zephyr:
+  variant: SIWX917
+  # board: siwx917_dk2605a  # default, no need to set explicitly
+
+logger:
+
+network:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+# No ota: block -- this board's flash is hardcoded to a single code partition
+# (no slot0/slot1), so there's no MCUboot layout to target and no bootloader:
+# option is exposed for this variant at all. This chip's real OTA path is
+# Silicon Labs' own proprietary RPS scheme instead, not supported by this
+# platform yet.
+
+# NWP (network coprocessor) firmware note: a factory-fresh board's Wi-Fi won't
+# associate at all until its NWP firmware is updated to match what Zephyr's
+# WiseConnect driver expects (one-time step; the matching firmware image is
+# fetched automatically by this variant, flash it with e.g.
+# `commander rps load <path>/SiWG917-B.2.15.5.0.0.12.rps --device SiWG917M111MGTBA`).
+# Wi-Fi association/scanning works after that, but a full DHCP-completed STA
+# connection is currently unreliable -- looks like an upstream Zephyr/WiseConnect
+# driver issue (reproduces identically on mainline Zephyr and Silicon Labs'
+# own vendor SDK), not something this platform's integration can fix.
+
+# Onboard LED0 (gpioa pin 15, active-low)
+switch:
+  - platform: gpio
+    name: "LED0"
+    pin:
+      number: PA15
+      inverted: true
+
+# BTN1/SW1 (gpiod pin 1, active-low). BTN0/SW0 is on the board's separate
+# UULP GPIO controller, not supported by this variant yet.
+binary_sensor:
+  - platform: gpio
+    name: "BTN1"
+    pin:
+      number: PD1
+      inverted: true
+      mode:
+        input: true
+        pullup: true
+
+# sda/scl intentionally omitted: this variant doesn't support I2C pin
+# remapping yet -- resolved automatically from the board's default I2C bus
+# (ulpi2c, aliased zephyr_i2c in the board DTS).
+i2c:
+
+sensor:
+  # Onboard Si7021 temperature/humidity sensor (address 0x40)
+  - platform: htu21d
+    model: SI7021
+    temperature:
+      name: "Temperature"
+    humidity:
+      name: "Humidity"
+    update_interval: 60s
+
+  # Onboard VEML6035 ambient light sensor (VEML7700-compatible, address 0x29)
+  - platform: veml7700
+    address: 0x29
+    ambient_light:
+      name: "Illuminance"
+    update_interval: 60s
+
+  # Onboard ADC-capable pin (HP28)
+  - platform: adc
+    pin: PB12
+    name: "ADC Test"
+    update_interval: 60s
