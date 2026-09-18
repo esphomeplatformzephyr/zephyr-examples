@@ -5,7 +5,7 @@
 # it ignores /dev/ttyUSB0 during use of openocd, but then logs from it afterwards
 
 esphome:
-  name: stm32f1-blinking-led.yaml
+  name: stm32f1-blinking-led
 
 zephyr:
   variant: STM32F1
