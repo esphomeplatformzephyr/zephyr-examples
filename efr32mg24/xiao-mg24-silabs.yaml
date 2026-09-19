@@ -1,6 +1,6 @@
 # xiao_mg24 needs the ardunio openocd if you compile with openocd (default)
-# requires a clean build environment ('esphome clean') if correcting from wrong openocd tool
-#export OPENOCD=/home/mc/.arduino15/packages/SiliconLabs/tools/openocd/0.12.0-arduino1-static/bin/openocd
+# requires a clean build environment ('esphome clean-all <config-file>') if correcting from wrong openocd tool
+#export PATH="$HOME/.arduino15/packages/SiliconLabs/tools/openocd/0.12.0-arduino1-static/bin":$PATH
 #export OPENOCD_SCRIPTS="$HOME/.arduino15/packages/SiliconLabs/tools/openocd/0.12.0-arduino1-static/share/openocd/scripts"
 
 # UNVERIFIED steps to use framework: type: silabs: THIS HAS NOT BEEN TESTED!
