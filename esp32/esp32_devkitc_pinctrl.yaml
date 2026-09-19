@@ -41,10 +41,12 @@ wifi:
   password: !secret wifi_password
 
 api:
+  encryption:
+    key: !secret api_encryption_key
 
 ota:
   - platform: esphome
-    password: !secret ota_password
+    encryption:
 
 i2c:
   scan: false

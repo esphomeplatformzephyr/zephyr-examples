@@ -24,10 +24,12 @@ wifi:
   min_rssi: -40
 
 api:
+  encryption:
+    key: !secret api_encryption_key
 
 ota:
   - platform: esphome
-    password: !secret ota_password
+    encryption:
 
 sensor:
   - platform: uptime

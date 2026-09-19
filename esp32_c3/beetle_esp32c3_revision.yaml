@@ -30,10 +30,12 @@ wifi:
   power_save_mode: NONE
 
 api:
+  encryption:
+    key: !secret api_encryption_key
 
 ota:
   - platform: esphome
-    password: !secret ota_password
+    encryption:
 
 binary_sensor:
   # GPIO0 pin 9 -- the BOOT button the @2.0.0 revision overlay adds

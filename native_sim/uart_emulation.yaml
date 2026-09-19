@@ -65,11 +65,13 @@ logger:
 network:
 
 api:
+  encryption:
+    key: !secret api_encryption_key
 
 ota:
   - platform: esphome
+    encryption:
     port: 3233
-    password: !secret ota_password
 
 uart:
   # `emulation:` replaces `port:`/`tx_pin:`/`rx_pin:` entirely -- it backs this bus with

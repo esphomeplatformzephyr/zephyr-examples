@@ -15,10 +15,12 @@ openthread:
   tlv: !secret openthread_tlv_wed
 
 api:
+  encryption:
+    key: !secret api_encryption_key
 
 ota:
   - platform: esphome
-    password: !secret ota_password
+    encryption:
     swap_method: move
 
 output:

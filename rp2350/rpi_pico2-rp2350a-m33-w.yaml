@@ -36,6 +36,8 @@ wifi:
   min_rssi: -40
 
 api:
+  encryption:
+    key: !secret api_encryption_key
 
 sensor:
   - platform: uptime

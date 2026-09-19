@@ -21,6 +21,12 @@ openthread:
   tlv: !secret openthread_tlv_wed
 
 api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    encryption:
 
 output:
   - platform: gpio

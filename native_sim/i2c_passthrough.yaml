@@ -13,11 +13,13 @@ logger:
 network:
 
 api:
+  encryption:
+    key: !secret api_encryption_key
 
 ota:
   - platform: esphome
+    encryption:
     port: 3233
-    password: !secret ota_password
 
 i2c:
   - id: i2c_bus

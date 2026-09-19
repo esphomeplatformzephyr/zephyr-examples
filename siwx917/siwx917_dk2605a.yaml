@@ -14,6 +14,8 @@ wifi:
   password: !secret wifi_password
 
 api:
+  encryption:
+    key: !secret api_encryption_key
 
 # No ota: block -- this board's flash is hardcoded to a single code partition
 # (no slot0/slot1), so there's no MCUboot layout to target and no bootloader:
