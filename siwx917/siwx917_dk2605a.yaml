@@ -3,6 +3,10 @@ esphome:
 
 zephyr:
   variant: SIWX917
+  framework:
+    source:
+      type: git
+      ref: main
   # board: siwx917_dk2605a  # default, no need to set explicitly
 
 logger:

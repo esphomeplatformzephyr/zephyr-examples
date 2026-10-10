@@ -3,6 +3,10 @@ esphome:
 
 zephyr:
   variant: ESP32
+  framework:
+    source:
+      type: git
+      ref: main
 
 logger:
 
@@ -18,6 +22,7 @@ api:
 
 ota:
   - platform: esphome
+    swap_method: offset
     encryption:
 
 sensor:

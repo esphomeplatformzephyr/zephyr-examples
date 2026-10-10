@@ -29,6 +29,7 @@ api:
 
 ota:
   - platform: esphome
+    swap_method: offset
     encryption:
 
 sensor:
