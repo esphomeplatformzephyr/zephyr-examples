@@ -1,0 +1,76 @@
+esphome:
+  name: test-xiao-nrf54lm20a
+
+zephyr:
+  variant: nrf54lm20a
+  board: xiao_nrf54lm20a
+  framework:
+    type: zephyr
+    source:
+      type: git
+      ref: main
+  # This board's devicetree marks its I2C buses, PMIC (nPM1300, via MFD), and fixed
+  # regulator "okay" unconditionally, which Kconfig auto-selects into every image built
+  # against this board -- including mcuboot's own minimal (no-multithreading) one, where
+  # those drivers fail to link (they need CONFIG_MULTITHREADING). mcuboot itself never
+  # touches them, so turn them back off for that image specifically.
+  kconfig_options:
+    mcuboot:
+      I2C: false
+      REGULATOR: false
+      MFD: false
+
+logger:
+  level: VERBOSE
+
+# Uncomment if you have external antenna
+#openthread:
+#  device_type: mtd
+#  force_dataset: true
+#  tlv: !secret openthread_tlv
+
+#api:
+#  encryption:
+#    key: !secret api_encryption_key
+
+#ota:
+#  - platform: esphome
+#    encryption:
+
+uart:
+  - id: uart_loop
+#    rx_pin: P1.09  # D7
+#    tx_pin: P1.08  # D6
+    port: UART1
+    baud_rate: 115200
+    debug:
+      direction: BOTH
+      dummy_receiver: true
+
+interval:
+  - interval: 20s
+    then:
+      - uart.write:
+          id: uart_loop
+          data: "ping\n"
+
+i2c:
+#  sda: P1.03  # D4
+#  scl: P1.07  # D5
+  scan: false
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: bme280_i2c
+    address: 0x76
+    temperature:
+      name: "BME280 Temperature"
+    pressure:
+      name: "BME280 Pressure"
+    humidity:
+      name: "BME280 Humidity"
+    update_interval: 60s

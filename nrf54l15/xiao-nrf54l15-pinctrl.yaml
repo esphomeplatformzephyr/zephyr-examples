@@ -1,0 +1,65 @@
+esphome:
+  name: xiao-nrf54l15
+
+zephyr:
+  variant: nrf54l15
+  board: xiao_nrf54l15
+  framework:
+    type: zephyr
+  kconfig_options:
+    # true (default) if Sense board.
+    CONFIG_LSM6DSL: false
+
+logger:
+  level: VERBOSE
+
+openthread:
+  device_type: mtd
+  force_dataset: true
+  tlv: !secret openthread_tlv
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    encryption:
+
+uart:
+  - id: uart_loop
+#    rx_pin: P2.07  # D7
+#    tx_pin: P2.08  # D6
+    port: UART1
+    baud_rate: 115200
+    debug:
+      direction: BOTH
+      dummy_receiver: true
+
+interval:
+  - interval: 20s
+    then:
+      - uart.write:
+          id: uart_loop
+          data: "ping\n"
+
+i2c:
+#  sda: P1.10  # D4
+#  scl: P1.11  # D5
+  scan: false
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: bme280_i2c
+    address: 0x76
+    temperature:
+      name: "BME280 Temperature"
+    pressure:
+      name: "BME280 Pressure"
+    humidity:
+      name: "BME280 Humidity"
+    update_interval: 60s
