@@ -15,6 +15,8 @@ zephyr:
   # those drivers fail to link (they need CONFIG_MULTITHREADING). mcuboot itself never
   # touches them, so turn them back off for that image specifically.
   kconfig_options:
+    # true (default) if Sense board.
+    CONFIG_LSM6DSL: false
     mcuboot:
       I2C: false
       REGULATOR: false
