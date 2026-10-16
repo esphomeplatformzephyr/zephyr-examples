@@ -1,12 +1,4 @@
 # board has adafruit_nrf52_sd140_v6 installed
-# To flash via UF2:
-# Put the board in bootloader mode by a double-tap of the reset button.
-# on debian it should be /dev/sd*, for example /dev/sdb so: udisksctl mount -b /dev/sdb
-# It should re-enumerate as the NICENANO mass-storage drive
-# cp .esphome/build/<device-name>/.west_build/zephyr/zephyr/zephyr.uf2 /media/mc/NICENANO/
-# (the doubled "zephyr/zephyr" is correct, not a typo -- west's own nested build layout)
-# The board auto-flashes and reboots into the new firmware the moment the
-# copy finishes -- the drive disappearing on its own is expected, not an error.
 esphome:
   name: test-nrf52
 
