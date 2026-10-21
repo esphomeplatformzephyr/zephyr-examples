@@ -1,0 +1,57 @@
+esphome:
+  name: nrf5340dk-example
+
+zephyr:
+  variant: nrf5340
+  # Bare nRF5340-DK -- no onboard Wi-Fi companion chip (unlike nrf7002dk, this
+  # variant's default board). No network transport is available on this
+  # board at all: Wi-Fi needs an nRF7002-EK shield (zephyr: shields:), and
+  # BLE/802.15.4/OpenThread/Zigbee need the network core, which this variant
+  # doesn't build. So no api:/ota: here -- just the application core's own
+  # peripherals.
+  board: nrf5340dk/nrf5340/cpuapp
+
+logger:
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+
+# nrf5340dk_nrf5340_cpuapp.dts: onboard LEDs/buttons are all on gpio0, which
+# this variant's flat GPIO numbering exposes directly as the pin number.
+output:
+  - platform: gpio
+    id: led0_output
+    pin: 28  # LED0: gpio0 pin 28, active-low
+  - platform: gpio
+    id: led1_output
+    pin: 29  # LED1: gpio0 pin 29, active-low
+
+switch:
+  - platform: output
+    id: led0
+    name: "LED0"
+    output: led0_output
+  - platform: output
+    id: led1
+    name: "LED1"
+    output: led1_output
+
+binary_sensor:
+  - platform: gpio
+    id: button0
+    name: "Button 1"
+    pin:
+      number: 23  # Button 1: gpio0 pin 23
+      mode: INPUT_PULLUP
+      inverted: true
+  - platform: gpio
+    id: button1
+    name: "Button 2"
+    pin:
+      number: 24  # Button 2: gpio0 pin 24
+      mode: INPUT_PULLUP
+      inverted: true

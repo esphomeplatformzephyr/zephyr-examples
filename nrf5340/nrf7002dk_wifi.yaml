@@ -1,0 +1,66 @@
+esphome:
+  name: nrf7002dk-wifi-example
+
+zephyr:
+  variant: nrf5340
+  # board: defaults to nrf7002dk/nrf5340/cpuapp for this variant -- only the
+  # application core is built; BLE/802.15.4/OpenThread/Zigbee need the
+  # separate network core, which isn't wired up yet.
+
+  # A full build (ESPHome core + logger + wifi) overflows the board's
+  # default 464K MCUboot slot by about 178K -- the nrf70 Wi-Fi driver's
+  # WPA-supplicant-based stack is simply large. Drop the second MCUboot slot
+  # and let the app use the freed space instead. This also means no
+  # `ota:` platform here: without a slot1 there is nowhere to swap an
+  # update into.
+  single_slot: true
+  overlays:
+    app: |
+      /delete-node/ &slot1_partition;
+      &slot0_partition {
+        reg = <0x10000 DT_SIZE_K(928)>;
+      };
+    mcuboot: |
+      / {
+        chosen {
+          zephyr,code-partition = &boot_partition;
+        };
+      };
+      /delete-node/ &slot1_partition;
+      &slot0_partition {
+        reg = <0x10000 DT_SIZE_K(928)>;
+      };
+
+logger:
+
+# Station mode. wifi: ap: (SoftAP) currently hits a boot-time readiness race
+# in the nrf70 driver (NET_REQUEST_WIFI_AP_ENABLE -ENOTSUP) -- see issue #204.
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+# nrf7002dk_nrf5340_cpuapp.dts: onboard LEDs/buttons are on gpio1, which this
+# variant's flat GPIO numbering (gpio0 0-31, gpio1 32-47) exposes as 32+N.
+output:
+  - platform: gpio
+    id: led0_output
+    pin: 38  # LED0: gpio1 pin 6, active-high
+
+switch:
+  - platform: output
+    id: led0
+    name: "LED0"
+    output: led0_output
+
+binary_sensor:
+  - platform: gpio
+    id: button0
+    name: "Button 1"
+    pin:
+      number: 40  # Button 1: gpio1 pin 8
+      mode: INPUT_PULLUP
+      inverted: true
