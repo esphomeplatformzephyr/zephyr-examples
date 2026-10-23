@@ -1,0 +1,38 @@
+esphome:
+  name: nano-matter
+
+zephyr:
+  variant: efr32mg24
+  board: arduino_nano_matter
+
+logger:
+
+i2c:
+
+binary_sensor:
+  - platform: gpio
+    name: Button
+    pin:
+      number: PA0
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+output:
+  - platform: gpio
+    id: led_red
+    pin: PC1
+
+  - platform: gpio
+    id: led_green
+    pin: PC2
+
+  - platform: gpio
+    id: led_blue
+    pin: PC3
+
+sensor:
+  - platform: adc
+    pin: PB0
+    name: A0
