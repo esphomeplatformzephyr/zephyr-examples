@@ -1,0 +1,45 @@
+# Seeed XIAO STM32C5, first time (Linux).
+#
+# 1. One time: give your user write access to the bootloader's disk, then
+#    unplug and replug the board.  Note <63> in next line can be whatever you need to use.
+#      echo 'SUBSYSTEM=="block", ATTRS{idVendor}=="2886", ATTRS{idProduct}=="00c5", GROUP="plugdev", MODE="0660"' | sudo tee /etc/udev/rules.d/63-tinyuf2.rules
+#      sudo udevadm control --reload-rules
+#    Your user must be in the plugdev group.
+#
+# 2. First flash: the factory firmware cannot reboot into the bootloader, so put
+#    the board into bootloader mode by hand. The disk shows up as
+#    /dev/disk/by-id/usb-Adafruit_UF2_Bootloader_*. Then:
+#      esphome run test-xiao-stm32c5.yaml --device /dev/ttyACM0
+#
+# 3. After that, `esphome run test-xiao-stm32c5.yaml --device /dev/ttyACM0`
+#    reflashes with no button: the app reboots into the bootloader itself.
+#    `esphome logs ... --reset` reboots the app.
+#
+# The xiao_stm32c5 board needs Zephyr 4.5.0-rc3 or later.
+
+esphome:
+  name: xiao-stm32c5
+
+zephyr:
+  variant: STM32C5
+  board: xiao_stm32c5
+  framework:
+    version: 4.5.0-rc3
+
+logger:
+  level: DEBUG
+
+output:
+  - platform: gpio
+    id: led_output
+    pin:
+      number: PB12
+      inverted: true
+
+interval:
+  - interval: 200ms
+    then:
+      - output.turn_on: led_output
+      - delay: 100ms
+      - output.turn_off: led_output
+      - lambda: ESP_LOGD("blink", "tick");
