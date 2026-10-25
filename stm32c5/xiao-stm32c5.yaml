@@ -9,9 +9,9 @@
 # 2. First flash: the factory firmware cannot reboot into the bootloader, so put
 #    the board into bootloader mode by hand. The disk shows up as
 #    /dev/disk/by-id/usb-Adafruit_UF2_Bootloader_*. Then:
-#      esphome run test-xiao-stm32c5.yaml --device /dev/ttyACM0
+#      esphome run xiao-stm32c5.yaml --device /dev/ttyACM0
 #
-# 3. After that, `esphome run test-xiao-stm32c5.yaml --device /dev/ttyACM0`
+# 3. After that, `esphome run xiao-stm32c5.yaml --device /dev/ttyACM0`
 #    reflashes with no button: the app reboots into the bootloader itself.
 #    `esphome logs ... --reset` reboots the app.
 #
