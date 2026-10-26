@@ -1,0 +1,59 @@
+esphome:
+  name: frdm-mcxn236-pinctrl
+
+zephyr:
+  variant: MCXN236
+  # frdm_mcxn236.dts's slot1 runs 8K into storage_partition; move it to end where storage begins.
+  overlays:
+    app: |
+      &slot1_partition { reg = <0x82000 DT_SIZE_K(440)>; };
+    mcuboot: |
+      &slot1_partition { reg = <0x82000 DT_SIZE_K(440)>; };
+  advanced:
+    # Flashes through the MCU-Link USB port; needs `pyocd pack install mcxn236` once.
+    runner: pyocd
+
+logger:
+  level: VERBOSE
+  # Default UART0 = &flexcomm4_lpuart4, the MCU-Link serial port.
+  # uncomment if you want logging through the MCU USB port instead of MCU-Link USB port
+#  hardware_uart: USB_CDC
+
+uart:
+  - id: uart_loop
+    # &flexcomm2_lpuart2 TX: P4_2, RX: P4_3, wired together for testing
+    port: "&flexcomm2_lpuart2"
+    baud_rate: 115200
+    debug:
+      direction: BOTH
+      dummy_receiver: true
+
+interval:
+  - interval: 20s
+    then:
+#      - logger.log: "write ping"
+      - uart.write:
+          id: uart_loop
+          data: "ping\n"
+#      - logger.log: "ping written"
+
+i2c:
+# &flexcomm2_lpi2c2 - SDA = P4_0, SCL = P4_1 (pinout i2c_sda/i2c_scl), shared with the on-board FXLS8974 accelerometer
+  dts_node_override: flexcomm2_lpi2c2
+  scan: false
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    id: uptime_sensor_id
+    type: seconds
+    update_interval: 60s
+  - platform: bme280_i2c
+    address: 0x76
+    temperature:
+      name: "BME280 Temperature"
+    pressure:
+      name: "BME280 Pressure"
+    humidity:
+      name: "BME280 Humidity"
+    update_interval: 60s

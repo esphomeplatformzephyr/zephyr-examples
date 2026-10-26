@@ -1,0 +1,35 @@
+esphome:
+  name: frdm-mcxn236
+
+zephyr:
+  variant: MCXN236
+  # frdm_mcxn236.dts's slot1 runs 8K into storage_partition; move it to end where storage begins.
+  overlays:
+    app: |
+      &slot1_partition { reg = <0x82000 DT_SIZE_K(440)>; };
+    mcuboot: |
+      &slot1_partition { reg = <0x82000 DT_SIZE_K(440)>; };
+  advanced:
+    # Flashes through the MCU-Link USB port; needs `pyocd pack install mcxn236` once.
+    runner: pyocd
+
+logger:
+  level: DEBUG
+  # Default UART0 = &flexcomm4_lpuart4, the MCU-Link serial port.
+  # uncomment if you want logging through the MCU USB port instead of MCU-Link USB port
+#  hardware_uart: USB_CDC
+
+output:
+  - platform: gpio
+    id: red_led
+    pin:
+      number: P4_18
+      inverted: true
+
+interval:
+  - interval: 1000ms
+    then:
+      - output.turn_on: red_led
+      - delay: 250ms
+      - output.turn_off: red_led
+      - lambda: ESP_LOGD("blink", "tick");
