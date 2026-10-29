@@ -8,12 +8,6 @@ esphome:
 zephyr:
   variant: rp2040
   board: rpi_pico/rp2040/w/mcuboot
-  framework:
-    source:
-      type: git
-      ref: main
-  kconfig_options:
-    CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
   advanced:
     bootloader: mcuboot
   # board does not have definition for uart1, so have to add so we can use UART1

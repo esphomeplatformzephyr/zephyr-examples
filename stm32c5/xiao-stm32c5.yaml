@@ -15,7 +15,7 @@
 #    reflashes with no button: the app reboots into the bootloader itself.
 #    `esphome logs ... --reset` reboots the app.
 #
-# The xiao_stm32c5 board needs Zephyr 4.5.0-rc3 or later.
+# The xiao_stm32c5 board needs Zephyr 4.5.0 or later.
 
 esphome:
   name: xiao-stm32c5
@@ -23,8 +23,6 @@ esphome:
 zephyr:
   variant: STM32C5
   board: xiao_stm32c5
-  framework:
-    version: 4.5.0-rc3
 
 logger:
   level: DEBUG

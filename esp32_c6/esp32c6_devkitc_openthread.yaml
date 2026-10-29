@@ -16,7 +16,7 @@ network:
 openthread:
   device_type: mtd
   force_dataset: true
-  tlv: !secret openthread_tlv_wed
+  tlv: !secret openthread_tlv
   output_power: 0
 
 api:
@@ -25,7 +25,6 @@ api:
 
 ota:
   - platform: esphome
-    swap_method: offset
     encryption:
 
 sensor:

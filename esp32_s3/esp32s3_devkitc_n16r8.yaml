@@ -3,14 +3,11 @@ esphome:
 
 zephyr:
   variant: ESP32S3
-  framework:
-    version: 4.5.0-rc1
   # N16R8 module: 16MB flash, 8MB octal PSRAM.
   snippets:
     - espressif-flash-16M
     - espressif-psram-8M
   kconfig_options:
-    CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
     # psram-8M defaults to quad mode; the R8 PSRAM is octal.
     # With octal PSRAM, GPIO 33–37 are taken by the PSRAM, no enforcement right now.
     # Should extend PSRAM component instead of manually setting (todo)
@@ -30,7 +27,6 @@ api:
 ota:
   - platform: esphome
     encryption:
-    swap_method: offset
 
 button:
   - platform: restart

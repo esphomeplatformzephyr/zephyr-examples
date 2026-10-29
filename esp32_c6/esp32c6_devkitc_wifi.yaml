@@ -5,15 +5,6 @@ zephyr:
   variant: ESP32C6
   snippets:
     - espressif-flash-4M
-  # pick up mDNS that isn't in a release yet
-  framework:
-    source:
-      type: git
-      url: https://github.com/zephyrproject-rtos/zephyr
-      ref: main
-    refresh: 60min
-  kconfig_options:
-    CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
 
 logger:
   level: VERBOSE
@@ -31,7 +22,6 @@ api:
 
 ota:
   - platform: esphome
-    swap_method: offset
     encryption:
 
 sensor:

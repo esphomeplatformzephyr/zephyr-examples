@@ -3,9 +3,23 @@ esphome:
 
 zephyr:
   variant: rp2350
-  # No partition overlay needed here -- unlike bare rpi_pico2, xiao_rp2350 already
-  # includes a default code/storage partitioning (xiao_rp2350.dtsi) at v4.4.1.
   board: xiao_rp2350
+  # The board's single 2MB code partition leaves no room for storage; split it.
+  overlays:
+    app: |
+      &code_partition {
+          reg = <0x0 DT_SIZE_M(1)>;
+      };
+
+      &flash0 {
+          partitions {
+              storage_partition: partition@100000 {
+                  compatible = "zephyr,mapped-partition";
+                  label = "storage";
+                  reg = <0x100000 DT_SIZE_M(1)>;
+              };
+          };
+      };
 
 logger:
   level: VERBOSE

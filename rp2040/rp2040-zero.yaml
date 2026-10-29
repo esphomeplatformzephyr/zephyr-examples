@@ -5,9 +5,6 @@ zephyr:
   variant: rp2040
   board: rp2040_zero
   log_level: INFO
-  framework:
-    version: 4.4.2
-  # Overlay uses the 4.4.x fixed-partitions syntax (no compatible on partitions).
   overlays:
     app: |
       &code_partition {
@@ -17,6 +14,7 @@ zephyr:
       &flash0 {
           partitions {
               storage_partition: partition@1F0100 {
+                  compatible = "zephyr,mapped-partition";
                   label = "storage";
                   reg = <0x1F0100 0xFF00>;
               };

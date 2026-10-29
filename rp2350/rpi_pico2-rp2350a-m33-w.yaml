@@ -4,12 +4,6 @@ esphome:
 zephyr:
   variant: rp2350
   board: rpi_pico2/rp2350a/m33/w
-  framework:
-    source:
-      type: git
-      ref: main
-  kconfig_options:
-    CONFIG_MDNS_RESPONDER_ANNOUNCE_DNS_SD: true
   overlays:
     app: |
       &flash0 {

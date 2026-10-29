@@ -6,9 +6,6 @@ zephyr:
   board: xiao_nrf54lm20a
   framework:
     type: zephyr
-    source:
-      type: git
-      ref: main
   # This board's devicetree marks its I2C buses, PMIC (nPM1300, via MFD), and fixed
   # regulator "okay" unconditionally, which Kconfig auto-selects into every image built
   # against this board -- including mcuboot's own minimal (no-multithreading) one, where
@@ -26,7 +23,7 @@ network:
 openthread:
   device_type: mtd
   force_dataset: true
-  tlv: !secret openthread_tlv_wed
+  tlv: !secret openthread_tlv
 
 api:
   encryption:

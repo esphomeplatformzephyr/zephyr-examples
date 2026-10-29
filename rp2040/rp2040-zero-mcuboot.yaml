@@ -5,9 +5,6 @@ zephyr:
   variant: rp2040
   board: rp2040_zero
   log_level: INFO
-  framework:
-    version: 4.4.2
-  # Overlays use the 4.4.x fixed-partitions syntax (no compatible on partitions).
   advanced:
     bootloader: mcuboot
   overlays:
@@ -19,19 +16,23 @@ zephyr:
       &flash0 {
           partitions {
               boot_partition: partition@100 {
+                  compatible = "zephyr,mapped-partition";
                   label = "mcuboot";
                   reg = <0x100 0xFF00>;
                   read-only;
               };
               slot0_partition: partition@10000 {
+                  compatible = "zephyr,mapped-partition";
                   label = "image-0";
                   reg = <0x10000 0xF0000>;
               };
               slot1_partition: partition@100000 {
+                  compatible = "zephyr,mapped-partition";
                   label = "image-1";
                   reg = <0x100000 0xF0000>;
               };
               storage_partition: partition@1F0000 {
+                  compatible = "zephyr,mapped-partition";
                   label = "storage";
                   reg = <0x1F0000 0x10000>;
               };
@@ -51,19 +52,23 @@ zephyr:
       &flash0 {
           partitions {
               boot_partition: partition@100 {
+                  compatible = "zephyr,mapped-partition";
                   label = "mcuboot";
                   reg = <0x100 0xFF00>;
                   read-only;
               };
               slot0_partition: partition@10000 {
+                  compatible = "zephyr,mapped-partition";
                   label = "image-0";
                   reg = <0x10000 0xF0000>;
               };
               slot1_partition: partition@100000 {
+                  compatible = "zephyr,mapped-partition";
                   label = "image-1";
                   reg = <0x100000 0xF0000>;
               };
               storage_partition: partition@1F0000 {
+                  compatible = "zephyr,mapped-partition";
                   label = "storage";
                   reg = <0x1F0000 0x10000>;
               };

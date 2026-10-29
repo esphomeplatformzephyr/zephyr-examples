@@ -3,10 +3,8 @@ esphome:
 
 zephyr:
   variant: ESP32
-  framework:
-    source:
-      type: git
-      ref: main
+  kconfig_options:
+    CONFIG_ESP32_REGION_1_NOINIT: true
 
 logger:
 
@@ -22,7 +20,6 @@ api:
 
 ota:
   - platform: esphome
-    swap_method: offset
     encryption:
 
 sensor:

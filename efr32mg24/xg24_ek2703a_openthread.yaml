@@ -3,12 +3,6 @@ esphome:
 
 zephyr:
   variant: efr32mg24
-  framework:
-    source:
-      type: git
-      ref: main  # The ieee802154 driver for this SoC landed on Zephyr's main branch
-                 # 2026-02-12 (commit bd89985e6) -- not in any tagged release yet as
-                 # of v4.4.1, so it needs to be fetched from main directly for now.
 
 logger:
 
@@ -18,7 +12,7 @@ network:
 openthread:
   device_type: mtd
   force_dataset: true
-  tlv: !secret openthread_tlv_wed
+  tlv: !secret openthread_tlv
 
 api:
   encryption:
