@@ -20,7 +20,7 @@
 esphome:
   name: xiao-stm32c5
 
-zephyr:
+stm32:
   variant: STM32C5
   board: xiao_stm32c5
 

@@ -1,11 +1,13 @@
 esphome:
   name: test-rp2350-w-mcuboot
 
-zephyr:
+rp2:
   variant: rp2350
   board: rpi_pico2/rp2350a/m33/w/mcuboot
-  advanced:
-    bootloader: mcuboot
+  framework:
+    type: zephyr
+    advanced:
+      bootloader: mcuboot
 
 logger:
   level: DEBUG

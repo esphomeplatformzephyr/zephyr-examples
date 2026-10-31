@@ -1,62 +1,63 @@
 esphome:
   name: nrf54l15dk-zigbee-example
 
-zephyr:
+nrf:
   variant: nrf54l15
-  log_level: INFO
-  overlays:
-    # Matches ncs-zigbee's own official reference overlay for this exact board
-    # (ncs-zigbee/samples/light_bulb/boards/nrf54l15dk_nrf54l15_cpuapp.overlay +
-    # ncs-zigbee/dts/nrf54l15_cpuapp_partitions.dtsi): direct-flash, no MCUboot --
-    # one big app partition (slot0) plus the two zboss partitions the zigbee
-    # component's C++ references directly (PARTITION_ID(zboss_nvram) /
-    # PARTITION_ID(zboss_product_config)), sized to fit the 1524K application-core
-    # flash exactly (1480K + 8K + 32K + 4K). The board's own devicetree already
-    # points zephyr,code-partition at slot0_partition, so redefining that same
-    # node (moved to 0x0, since there's no mcuboot partition to skip past here)
-    # doesn't need a separate chosen override.
-    app: |
-      /delete-node/ &slot0_partition;
-      /delete-node/ &slot1_partition;
-      /delete-node/ &storage_partition;
+  framework:
+    log_level: INFO
+    overlays:
+      # Matches ncs-zigbee's own official reference overlay for this exact board
+      # (ncs-zigbee/samples/light_bulb/boards/nrf54l15dk_nrf54l15_cpuapp.overlay +
+      # ncs-zigbee/dts/nrf54l15_cpuapp_partitions.dtsi): direct-flash, no MCUboot --
+      # one big app partition (slot0) plus the two zboss partitions the zigbee
+      # component's C++ references directly (PARTITION_ID(zboss_nvram) /
+      # PARTITION_ID(zboss_product_config)), sized to fit the 1524K application-core
+      # flash exactly (1480K + 8K + 32K + 4K). The board's own devicetree already
+      # points zephyr,code-partition at slot0_partition, so redefining that same
+      # node (moved to 0x0, since there's no mcuboot partition to skip past here)
+      # doesn't need a separate chosen override.
+      app: |
+        /delete-node/ &slot0_partition;
+        /delete-node/ &slot1_partition;
+        /delete-node/ &storage_partition;
 
-      &cpuapp_rram {
-        partitions {
-          slot0_partition: partition@0 {
-            compatible = "zephyr,mapped-partition";
-            label = "image-0";
-            reg = <0x0 DT_SIZE_K(1480)>;
-          };
+        &cpuapp_rram {
+          partitions {
+            slot0_partition: partition@0 {
+              compatible = "zephyr,mapped-partition";
+              label = "image-0";
+              reg = <0x0 DT_SIZE_K(1480)>;
+            };
 
-          storage_partition: partition@172000 {
-            compatible = "zephyr,mapped-partition";
-            label = "storage";
-            reg = <0x172000 DT_SIZE_K(8)>;
-          };
+            storage_partition: partition@172000 {
+              compatible = "zephyr,mapped-partition";
+              label = "storage";
+              reg = <0x172000 DT_SIZE_K(8)>;
+            };
 
-          zboss_nvram: partition@174000 {
-            compatible = "zephyr,mapped-partition";
-            label = "zboss-nvram";
-            reg = <0x174000 DT_SIZE_K(32)>;
-          };
+            zboss_nvram: partition@174000 {
+              compatible = "zephyr,mapped-partition";
+              label = "zboss-nvram";
+              reg = <0x174000 DT_SIZE_K(32)>;
+            };
 
-          zboss_product_config: partition@17c000 {
-            compatible = "zephyr,mapped-partition";
-            label = "zboss-product-config";
-            reg = <0x17c000 DT_SIZE_K(4)>;
+            zboss_product_config: partition@17c000 {
+              compatible = "zephyr,mapped-partition";
+              label = "zboss-product-config";
+              reg = <0x17c000 DT_SIZE_K(4)>;
+            };
           };
         };
-      };
 
-      / {
-        chosen {
-          ncs,zigbee-timer = &timer20;
+        / {
+          chosen {
+            ncs,zigbee-timer = &timer20;
+          };
         };
-      };
 
-      &timer20 {
-        status = "okay";
-      };
+        &timer20 {
+          status = "okay";
+        };
 
 zigbee:
   model: zigbee_test

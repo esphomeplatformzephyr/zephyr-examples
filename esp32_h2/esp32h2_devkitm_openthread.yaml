@@ -1,8 +1,10 @@
 esphome:
   name: esp32h2-openthread-example
 
-zephyr:
+esp32:
   variant: ESP32H2
+  framework:
+    type: zephyr
 
 logger:
 

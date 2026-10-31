@@ -1,17 +1,19 @@
 esphome:
   name: test-esps3
 
-zephyr:
+esp32:
   variant: ESP32S3
-  # N16R8 module: 16MB flash, 8MB octal PSRAM.
-  snippets:
-    - espressif-flash-16M
-    - espressif-psram-8M
-  kconfig_options:
-    # psram-8M defaults to quad mode; the R8 PSRAM is octal.
-    # With octal PSRAM, GPIO 33–37 are taken by the PSRAM, no enforcement right now.
-    # Should extend PSRAM component instead of manually setting (todo)
-    CONFIG_SPIRAM_MODE_OCT: true
+  framework:
+    type: zephyr
+    # N16R8 module: 16MB flash, 8MB octal PSRAM.
+    snippets:
+      - espressif-flash-16M
+      - espressif-psram-8M
+    kconfig_options:
+      # psram-8M defaults to quad mode; the R8 PSRAM is octal.
+      # With octal PSRAM, GPIO 33–37 are taken by the PSRAM, no enforcement right now.
+      # Should extend PSRAM component instead of manually setting (todo)
+      CONFIG_SPIRAM_MODE_OCT: true
 
 logger:
   level: VERBOSE

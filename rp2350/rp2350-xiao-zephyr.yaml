@@ -1,25 +1,27 @@
 esphome:
   name: test-rp2350-xiao-zephyr
 
-zephyr:
+rp2:
   variant: rp2350
   board: xiao_rp2350
-  # The board's single 2MB code partition leaves no room for storage; split it.
-  overlays:
-    app: |
-      &code_partition {
-          reg = <0x0 DT_SIZE_M(1)>;
-      };
+  framework:
+    type: zephyr
+    # The board's single 2MB code partition leaves no room for storage; split it.
+    overlays:
+      app: |
+        &code_partition {
+            reg = <0x0 DT_SIZE_M(1)>;
+        };
 
-      &flash0 {
-          partitions {
-              storage_partition: partition@100000 {
-                  compatible = "zephyr,mapped-partition";
-                  label = "storage";
-                  reg = <0x100000 DT_SIZE_M(1)>;
-              };
-          };
-      };
+        &flash0 {
+            partitions {
+                storage_partition: partition@100000 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "storage";
+                    reg = <0x100000 DT_SIZE_M(1)>;
+                };
+            };
+        };
 
 logger:
   level: VERBOSE

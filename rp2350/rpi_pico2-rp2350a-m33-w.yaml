@@ -1,23 +1,25 @@
 esphome:
   name: test-rp2350-w
 
-zephyr:
+rp2:
   variant: rp2350
   board: rpi_pico2/rp2350a/m33/w
-  overlays:
-    app: |
-      &flash0 {
-          partitions {
-              code_partition: partition@0 {
-                  reg = <0x0 0x3F0000>;
-              };
-              storage_partition: partition@3F0000 {
-                  compatible = "zephyr,mapped-partition";
-                  label = "storage";
-                  reg = <0x3F0000 0x10000>;
-              };
-          };
-      };
+  framework:
+    type: zephyr
+    overlays:
+      app: |
+        &flash0 {
+            partitions {
+                code_partition: partition@0 {
+                    reg = <0x0 0x3F0000>;
+                };
+                storage_partition: partition@3F0000 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "storage";
+                    reg = <0x3F0000 0x10000>;
+                };
+            };
+        };
 
 logger:
   level: DEBUG

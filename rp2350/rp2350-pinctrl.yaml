@@ -1,28 +1,30 @@
 esphome:
   name: rp2350-w-mcuboot
 
-zephyr:
+rp2:
   variant: rp2350
   board: rpi_pico2/rp2350a/m33/w/mcuboot
-  advanced:
-    bootloader: mcuboot
-  # board does not have definition for uart1, so have to add so we can use UART1
-  # in uart component.
-  overlays:
-    app: |
-      &pinctrl {
-          uart1_default: uart1_default {
-              group1 { pinmux = <UART1_TX_P8>; };
-              group2 { pinmux = <UART1_RX_P9>; input-enable; };
-          };
-      };
+  framework:
+    type: zephyr
+    # board does not have definition for uart1, so have to add so we can use UART1
+    # in uart component.
+    overlays:
+      app: |
+        &pinctrl {
+            uart1_default: uart1_default {
+                group1 { pinmux = <UART1_TX_P8>; };
+                group2 { pinmux = <UART1_RX_P9>; input-enable; };
+            };
+        };
 
-      &uart1 {
-          status = "okay";
-          current-speed = <115200>;
-          pinctrl-0 = <&uart1_default>;
-          pinctrl-names = "default";
-      };
+        &uart1 {
+            status = "okay";
+            current-speed = <115200>;
+            pinctrl-0 = <&uart1_default>;
+            pinctrl-names = "default";
+        };
+    advanced:
+      bootloader: mcuboot
 
 logger:
   level: DEBUG

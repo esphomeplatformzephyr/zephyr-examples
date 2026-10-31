@@ -1,35 +1,36 @@
 esphome:
   name: nrf7002dk-wifi-example
 
-zephyr:
+nrf:
   variant: nrf5340
-  # board: defaults to nrf7002dk/nrf5340/cpuapp for this variant -- only the
-  # application core is built; BLE/802.15.4/OpenThread/Zigbee need the
-  # separate network core, which isn't wired up yet.
+  framework:
+    # board: defaults to nrf7002dk/nrf5340/cpuapp for this variant -- only the
+    # application core is built; BLE/802.15.4/OpenThread/Zigbee need the
+    # separate network core, which isn't wired up yet.
 
-  # A full build (ESPHome core + logger + wifi) overflows the board's
-  # default 464K MCUboot slot by about 178K -- the nrf70 Wi-Fi driver's
-  # WPA-supplicant-based stack is simply large. Drop the second MCUboot slot
-  # and let the app use the freed space instead. This also means no
-  # `ota:` platform here: without a slot1 there is nowhere to swap an
-  # update into.
-  single_slot: true
-  overlays:
-    app: |
-      /delete-node/ &slot1_partition;
-      &slot0_partition {
-        reg = <0x10000 DT_SIZE_K(928)>;
-      };
-    mcuboot: |
-      / {
-        chosen {
-          zephyr,code-partition = &boot_partition;
+    # A full build (ESPHome core + logger + wifi) overflows the board's
+    # default 464K MCUboot slot by about 178K -- the nrf70 Wi-Fi driver's
+    # WPA-supplicant-based stack is simply large. Drop the second MCUboot slot
+    # and let the app use the freed space instead. This also means no
+    # `ota:` platform here: without a slot1 there is nowhere to swap an
+    # update into.
+    single_slot: true
+    overlays:
+      app: |
+        /delete-node/ &slot1_partition;
+        &slot0_partition {
+          reg = <0x10000 DT_SIZE_K(928)>;
         };
-      };
-      /delete-node/ &slot1_partition;
-      &slot0_partition {
-        reg = <0x10000 DT_SIZE_K(928)>;
-      };
+      mcuboot: |
+        / {
+          chosen {
+            zephyr,code-partition = &boot_partition;
+          };
+        };
+        /delete-node/ &slot1_partition;
+        &slot0_partition {
+          reg = <0x10000 DT_SIZE_K(928)>;
+        };
 
 logger:
 

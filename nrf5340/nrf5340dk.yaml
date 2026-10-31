@@ -1,7 +1,7 @@
 esphome:
   name: nrf5340dk-example
 
-zephyr:
+nrf:
   variant: nrf5340
   # Bare nRF5340-DK -- no onboard Wi-Fi companion chip (unlike nrf7002dk, this
   # variant's default board). No network transport is available on this

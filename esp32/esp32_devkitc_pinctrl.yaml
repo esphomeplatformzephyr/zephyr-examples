@@ -11,10 +11,12 @@
 esphome:
   name: esp32-devkitc-pinctrl-example
 
-zephyr:
+esp32:
   variant: ESP32
-  kconfig_options:
-    CONFIG_ESP32_REGION_1_NOINIT: true
+  framework:
+    type: zephyr
+    kconfig_options:
+      CONFIG_ESP32_REGION_1_NOINIT: true
 
 logger:
   level: DEBUG

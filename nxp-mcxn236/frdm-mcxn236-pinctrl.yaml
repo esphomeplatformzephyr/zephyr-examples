@@ -1,17 +1,18 @@
 esphome:
   name: frdm-mcxn236-pinctrl
 
-zephyr:
+nxp:
   variant: MCXN236
-  # frdm_mcxn236.dts's slot1 runs 8K into storage_partition; move it to end where storage begins.
-  overlays:
-    app: |
-      &slot1_partition { reg = <0x82000 DT_SIZE_K(440)>; };
-    mcuboot: |
-      &slot1_partition { reg = <0x82000 DT_SIZE_K(440)>; };
-  advanced:
-    # Flashes through the MCU-Link USB port; needs `pyocd pack install mcxn236` once.
-    runner: pyocd
+  framework:
+    # frdm_mcxn236.dts's slot1 runs 8K into storage_partition; move it to end where storage begins.
+    overlays:
+      app: |
+        &slot1_partition { reg = <0x82000 DT_SIZE_K(440)>; };
+      mcuboot: |
+        &slot1_partition { reg = <0x82000 DT_SIZE_K(440)>; };
+    advanced:
+      # Flashes through the MCU-Link USB port; needs `pyocd pack install mcxn236` once.
+      runner: pyocd
 
 logger:
   level: VERBOSE

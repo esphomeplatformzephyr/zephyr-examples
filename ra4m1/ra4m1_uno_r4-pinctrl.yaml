@@ -1,32 +1,33 @@
 esphome:
   name: arduino-uno-r4
 
-zephyr:
+renesas:
   variant: RA4M1
   board: arduino_uno_r4@wifi
-  # Carve out the storage_partition needed for preferences
-  overlays:
-    app: |
-      &code_flash {
-          partitions {
-              ranges;
-              #address-cells = <1>;
-              #size-cells = <1>;
+  framework:
+    # Carve out the storage_partition needed for preferences
+    overlays:
+      app: |
+        &code_flash {
+            partitions {
+                ranges;
+                #address-cells = <1>;
+                #size-cells = <1>;
 
-              code_partition: partition@4000 {
-                  compatible = "zephyr,mapped-partition";
-                  label = "code";
-                  reg = <0x4000 0x3a000>;
-                  read-only;
-              };
+                code_partition: partition@4000 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "code";
+                    reg = <0x4000 0x3a000>;
+                    read-only;
+                };
 
-              storage_partition: partition@3e000 {
-                  compatible = "zephyr,mapped-partition";
-                  label = "storage";
-                  reg = <0x3e000 0x2000>;
-              };
-          };
-      };
+                storage_partition: partition@3e000 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "storage";
+                    reg = <0x3e000 0x2000>;
+                };
+            };
+        };
 
 logger:
   # default console is UART0 = &uart2 -- no hardware_uart override needed.

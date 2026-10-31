@@ -1,8 +1,10 @@
 esphome:
   name: esp32c5-openthread-example
 
-zephyr:
+esp32:
   variant: ESP32C5
+  framework:
+    type: zephyr
 
 logger:
   level: VERBOSE

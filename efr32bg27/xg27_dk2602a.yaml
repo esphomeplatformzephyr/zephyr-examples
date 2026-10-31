@@ -1,7 +1,7 @@
 esphome:
   name: xg27-dk2602a-example
 
-zephyr:
+silabs:
   variant: efr32bg27
 
 logger:

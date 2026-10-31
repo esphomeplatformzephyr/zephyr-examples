@@ -6,9 +6,11 @@
 esphome:
   name: beetle-esp32c3-revision-example
 
-zephyr:
+esp32:
   variant: ESP32C3
   board: beetle_esp32c3@2.0.0
+  framework:
+    type: zephyr
 
 logger:
   level: VERBOSE

@@ -1,21 +1,21 @@
 esphome:
   name: xiao-nrf54lm20a-example
 
-zephyr:
+nrf:
   variant: nrf54lm20a
   board: xiao_nrf54lm20a
   framework:
     type: zephyr
-  # This board's devicetree marks its I2C buses, PMIC (nPM1300, via MFD), and fixed
-  # regulator "okay" unconditionally, which Kconfig auto-selects into every image built
-  # against this board -- including mcuboot's own minimal (no-multithreading) one, where
-  # those drivers fail to link (they need CONFIG_MULTITHREADING). mcuboot itself never
-  # touches them, so turn them back off for that image specifically.
-  kconfig_options:
-    mcuboot:
-      I2C: false
-      REGULATOR: false
-      MFD: false
+    # This board's devicetree marks its I2C buses, PMIC (nPM1300, via MFD), and fixed
+    # regulator "okay" unconditionally, which Kconfig auto-selects into every image built
+    # against this board -- including mcuboot's own minimal (no-multithreading) one, where
+    # those drivers fail to link (they need CONFIG_MULTITHREADING). mcuboot itself never
+    # touches them, so turn them back off for that image specifically.
+    kconfig_options:
+      mcuboot:
+        I2C: false
+        REGULATOR: false
+        MFD: false
 
 network:
   enable_ipv6: true

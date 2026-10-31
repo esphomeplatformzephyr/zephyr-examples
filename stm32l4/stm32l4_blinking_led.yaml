@@ -1,12 +1,13 @@
 esphome:
   name: stm32l4-blinking-led
 
-zephyr:
+stm32:
   variant: STM32L4
   # board: nucleo_l476rg/stm32l476xx
   board: nucleo_l476rg
-  advanced:
-    runner: openocd
+  framework:
+    advanced:
+      runner: openocd
 
 logger:
 

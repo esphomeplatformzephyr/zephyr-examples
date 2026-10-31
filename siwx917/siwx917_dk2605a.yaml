@@ -1,7 +1,7 @@
 esphome:
   name: siwx917-dk2605a-example
 
-zephyr:
+silabs:
   variant: SIWX917
   # board: siwx917_dk2605a  # default, no need to set explicitly
 

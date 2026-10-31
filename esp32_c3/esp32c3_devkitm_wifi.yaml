@@ -1,8 +1,10 @@
 esphome:
   name: esp32c3-wifi-example
 
-zephyr:
+esp32:
   variant: ESP32C3
+  framework:
+    type: zephyr
 
 logger:
   level: VERBOSE

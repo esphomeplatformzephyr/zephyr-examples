@@ -1,10 +1,12 @@
 esphome:
   name: esp32c6-openthread-example
 
-zephyr:
+esp32:
   variant: ESP32C6
-  snippets:
-    - espressif-flash-4M
+  framework:
+    type: zephyr
+    snippets:
+      - espressif-flash-4M
 
 logger:
   level: VERBOSE

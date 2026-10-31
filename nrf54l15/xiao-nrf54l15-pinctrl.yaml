@@ -1,14 +1,14 @@
 esphome:
   name: xiao-nrf54l15
 
-zephyr:
+nrf:
   variant: nrf54l15
   board: xiao_nrf54l15
   framework:
     type: zephyr
-  kconfig_options:
-    # true (default) if Sense board.
-    CONFIG_LSM6DSL: false
+    kconfig_options:
+      # true (default) if Sense board.
+      CONFIG_LSM6DSL: false
 
 logger:
   level: VERBOSE

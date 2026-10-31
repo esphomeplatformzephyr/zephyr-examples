@@ -1,7 +1,7 @@
 esphome:
   name: xg24-ek2703a-example
 
-zephyr:
+silabs:
   variant: efr32mg24
 
 logger:

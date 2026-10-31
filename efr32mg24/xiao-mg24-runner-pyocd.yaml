@@ -2,11 +2,12 @@
 esphome:
   name: xiao-mg24-example
 
-zephyr:
+silabs:
   variant: efr32mg24
   board: xiao_mg24
-  advanced:
-    runner: pyocd
+  framework:
+    advanced:
+      runner: pyocd
 
 logger:
   level: VERBOSE

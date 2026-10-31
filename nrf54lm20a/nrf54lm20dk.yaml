@@ -1,7 +1,7 @@
 esphome:
   name: nrf54lm20dk-example
 
-zephyr:
+nrf:
   variant: nrf54lm20a
 
 network:
