@@ -57,3 +57,8 @@ interval:
       - output.turn_on: led_output
       - delay: 2s
       - output.turn_off: led_output
+
+sensor:
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s

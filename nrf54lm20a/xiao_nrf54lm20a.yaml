@@ -47,3 +47,8 @@ interval:
   - interval: 500ms
     then:
       - switch.toggle: led0
+
+sensor:
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s

@@ -73,3 +73,6 @@ sensor:
     humidity:
       name: "BME280 Humidity"
     update_interval: 60s
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s

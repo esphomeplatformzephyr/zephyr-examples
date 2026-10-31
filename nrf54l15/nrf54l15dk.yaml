@@ -63,3 +63,8 @@ binary_sensor:
       number: 4  # SW3 (button3): gpio0 pin 4 (0*32 + 4)
       mode: INPUT_PULLUP
       inverted: true
+
+sensor:
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s

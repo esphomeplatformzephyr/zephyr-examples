@@ -41,3 +41,8 @@ interval:
       - delay: 100ms
       - output.turn_off: led_output
       - lambda: ESP_LOGD("blink", "tick");
+
+sensor:
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s

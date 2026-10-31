@@ -104,3 +104,6 @@ sensor:
     id: uptime_sensor_id
     type: seconds
     update_interval: 60s
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s
