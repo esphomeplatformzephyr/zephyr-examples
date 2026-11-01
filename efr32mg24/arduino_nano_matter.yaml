@@ -1,0 +1,41 @@
+esphome:
+  name: nano-matter
+
+silabs:
+  variant: efr32mg24
+  board: arduino_nano_matter
+
+logger:
+
+i2c:
+
+binary_sensor:
+  - platform: gpio
+    name: Button
+    pin:
+      number: PA0
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+
+output:
+  - platform: gpio
+    id: led_red
+    pin: PC1
+    inverted: true  # active-low
+
+  - platform: gpio
+    id: led_green
+    pin: PC2
+    inverted: true  # active-low
+
+  - platform: gpio
+    id: led_blue
+    pin: PC3
+    inverted: true  # active-low
+
+sensor:
+  - platform: adc
+    pin: PB0
+    name: A0
