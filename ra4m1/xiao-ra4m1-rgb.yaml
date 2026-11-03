@@ -1,0 +1,76 @@
+# Cycles the XIAO RA4M1 RGB LED (WS2812) through dim red, green and blue.
+# Erase the flash before every "esphome run" or "esphome upload". Without this, the
+# upload fails with "E1000011: A write error occurred in the device".
+# This also erases saved settings. Needs rfp-cli (Renesas Flash Programmer).
+# See https://github.com/zephyrproject-rtos/zephyr/issues/124455
+#
+# Assumes chip is at /dev/ttyACM0 in following instructions.
+#
+# Boot mode: hold Boot, tap Reset, then release Boot
+#
+# 1. Enter boot mode, then run:
+#      rfp-cli -port /dev/ttyACM0 -device RA -erase
+# 2. Enter boot mode again (boot mode allows one rfp-cli session), then run:
+#      esphome run xiao-ra4m1-rgb.yaml
+# 3. Tap Reset to start the firmware.
+
+esphome:
+  name: xiao-ra4m1-rgb
+  includes:
+    - xiao_ra4m1_rgb.h
+  on_boot:
+    priority: -100
+    then:
+      - lambda: rgb_init();
+
+renesas:
+  variant: RA4M1
+  board: xiao_ra4m1
+  framework:
+    # Carve out the storage_partition needed for preferences
+    overlays:
+      app: |
+        / {
+            chosen {
+                zephyr,code-partition = &code_partition;
+            };
+        };
+
+        &code_flash {
+            partitions {
+                ranges;
+                #address-cells = <1>;
+                #size-cells = <1>;
+
+                code_partition: partition@0 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "code";
+                    reg = <0x0 0x3e000>;
+                    read-only;
+                };
+
+                storage_partition: partition@3e000 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "storage";
+                    reg = <0x3e000 0x2000>;
+                };
+            };
+        };
+
+logger:
+  hardware_uart: USB_CDC
+
+output:
+  - platform: gpio
+    id: rgb_data
+    pin: P112
+
+interval:
+  - interval: 3s
+    then:
+      - logger.log: "tick"
+      - lambda: rgb_set(32, 0, 0);  # red
+      - delay: 1s
+      - lambda: rgb_set(0, 32, 0);  # green
+      - delay: 1s
+      - lambda: rgb_set(0, 0, 32);  # blue
