@@ -29,7 +29,6 @@ wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
   power_save_mode: NONE
-  min_rssi: -40
 
 api:
   encryption:
