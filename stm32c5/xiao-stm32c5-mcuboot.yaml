@@ -1,0 +1,98 @@
+# Seeed XIAO STM32C5 with MCUboot in place of TinyUF2.
+#
+# MCUboot overwrites TinyUF2 at 0x0, so the first flash needs SWD (ST-Link or
+# similar). Restoring TinyUF2 later also needs SWD.
+#
+# Partitions follow nucleo_c5a3zg (same STM32C5A3 chip, 1M flash, 8K pages):
+#   boot   0x00000  48K
+#   slot0  0x0c000 472K
+#   slot1  0x82000 480K
+#   storage 0xfa000 24K
+# slot1 and storage match the XIAO board DTS; only boot and slot0 move.
+#
+# The xiao_stm32c5 board needs Zephyr 4.5.0 or later.
+
+esphome:
+  name: xiao-stm32c5-mcuboot
+
+stm32:
+  variant: STM32C5
+  board: xiao_stm32c5
+  framework:
+    advanced:
+      bootloader: mcuboot
+      runner: stm32cubeprogrammer
+    overlays:
+      app: |
+        /delete-node/ &boot_partition;
+        /delete-node/ &slot0_partition;
+
+        &flash0 {
+            partitions {
+                boot_partition: partition@0 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "mcuboot";
+                    reg = <0x00000000 0x0000c000>;
+                };
+
+                slot0_partition: partition@c000 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "image-0";
+                    reg = <0x0000c000 0x00076000>;
+                };
+            };
+        };
+
+        / {
+            chosen {
+                zephyr,code-partition = &slot0_partition;
+            };
+        };
+      mcuboot: |
+        /delete-node/ &boot_partition;
+        /delete-node/ &slot0_partition;
+
+        &flash0 {
+            partitions {
+                boot_partition: partition@0 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "mcuboot";
+                    reg = <0x00000000 0x0000c000>;
+                };
+
+                slot0_partition: partition@c000 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "image-0";
+                    reg = <0x0000c000 0x00076000>;
+                };
+            };
+        };
+
+        / {
+            chosen {
+                zephyr,code-partition = &boot_partition;
+            };
+        };
+
+logger:
+  level: DEBUG
+
+output:
+  - platform: gpio
+    id: led_output
+    pin:
+      number: PB12
+      inverted: true
+
+interval:
+  - interval: 200ms
+    then:
+      - output.turn_on: led_output
+      - delay: 100ms
+      - output.turn_off: led_output
+      - lambda: ESP_LOGD("blink", "tick");
+
+sensor:
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s
