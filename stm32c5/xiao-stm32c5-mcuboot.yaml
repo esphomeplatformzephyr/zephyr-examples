@@ -22,8 +22,12 @@ stm32:
     advanced:
       bootloader: mcuboot
       runner: stm32cubeprogrammer
+    # The application and MCUboot must agree on the partitions, so both get the
+    # same overlay (&xiao_partitions). The code partitions need no overlay: the
+    # board DTS already runs the application from slot0_partition, and ESPHome
+    # adds MCUboot's boot_partition to its overlay.
     overlays:
-      app: |
+      app: &xiao_partitions |
         /delete-node/ &boot_partition;
         /delete-node/ &slot0_partition;
 
@@ -42,37 +46,7 @@ stm32:
                 };
             };
         };
-
-        / {
-            chosen {
-                zephyr,code-partition = &slot0_partition;
-            };
-        };
-      mcuboot: |
-        /delete-node/ &boot_partition;
-        /delete-node/ &slot0_partition;
-
-        &flash0 {
-            partitions {
-                boot_partition: partition@0 {
-                    compatible = "zephyr,mapped-partition";
-                    label = "mcuboot";
-                    reg = <0x00000000 0x0000c000>;
-                };
-
-                slot0_partition: partition@c000 {
-                    compatible = "zephyr,mapped-partition";
-                    label = "image-0";
-                    reg = <0x0000c000 0x00076000>;
-                };
-            };
-        };
-
-        / {
-            chosen {
-                zephyr,code-partition = &boot_partition;
-            };
-        };
+      mcuboot: *xiao_partitions
 
 logger:
   level: DEBUG
