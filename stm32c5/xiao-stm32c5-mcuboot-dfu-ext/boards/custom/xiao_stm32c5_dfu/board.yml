@@ -1,0 +1,4 @@
+# Extends Zephyr's xiao_stm32c5 with a dfu-util runner for the STM32 ROM DFU
+# bootloader, made the default flash runner.
+board:
+  extend: xiao_stm32c5

@@ -1,0 +1,97 @@
+# Seeed XIAO STM32C5 with MCUboot in place of TinyUF2, flashed over USB through
+# the chip's ROM DFU bootloader with dfu-util.
+#
+# Factory boards boot Seeed's TinyUF2 bootloader (0x0-0x8000), and two settings
+# keep the ROM DFU bootloader from replacing it:
+# - TinyUF2 write-protects its own flash pages, and sets this again at every
+#   boot. The ROM bootloader then reports success but leaves them unchanged.
+# - BOOT_SEL takes the boot source from an option bit instead of the BOOT pin,
+#   so BOOT + RESET does not reach the ROM bootloader.
+# So before the first DFU flash, set BOOT_SEL to the BOOT pin, remove the write
+# protection and erase TinyUF2, before TinyUF2 boots again: with an ST-Link
+# (STM32CubeProgrammer's option bytes over SWD), or firmware that clears the
+# protection itself. Once TinyUF2 is gone, nothing sets the protection again.
+#
+# Flashing (Linux, needs dfu-util):
+#   1. Hold BOOT, press and release RESET, release BOOT. The board shows up as
+#      USB 0483:df11 ("STM Device in DFU Mode").
+#   2. esphome run xiao-stm32c5-mcuboot-dfu-ext.yaml --device /dev/ttyACM0
+#      MCUboot and the application are written in one go; the board then boots.
+#      The serial port only selects the west flash path: dfu-util finds the
+#      board by its USB ID.
+#
+# The board extension in xiao-stm32c5-mcuboot-dfu-ext/ adds the dfu-util
+# runner, which Zephyr's xiao_stm32c5 board files leave out, and makes it the
+# default. Writing MCUboot and the application in one go needs a Zephyr whose
+# dfu-util runner keeps the chip in DFU mode until the last image
+# (zephyrproject-rtos/zephyr#126198, in Zephyr main).
+#
+# Partitions follow nucleo_c5a3zg (same STM32C5A3 chip, 1M flash, 8K pages):
+#   boot   0x00000  48K
+#   slot0  0x0c000 472K
+#   slot1  0x82000 480K
+#   storage 0xfa000 24K
+# slot1 and storage match the XIAO board DTS; only boot and slot0 move.
+
+esphome:
+  name: xiao-stm32c5-mcuboot-dfu-ext
+
+stm32:
+  variant: STM32C5
+  board: xiao_stm32c5
+  framework:
+    source: github://zephyrproject-rtos/zephyr@main
+    board_source:
+      type: local
+      path: xiao-stm32c5-mcuboot-dfu-ext
+    advanced:
+      bootloader: mcuboot
+      runner: dfu-util
+    # The application and MCUboot must agree on the partitions, so both get the
+    # same overlay (&xiao_partitions). The code partitions need no overlay: the
+    # board DTS already runs the application from slot0_partition, and ESPHome
+    # adds MCUboot's boot_partition to its overlay.
+    overlays:
+      app: &xiao_partitions |
+        /delete-node/ &boot_partition;
+        /delete-node/ &slot0_partition;
+
+        &flash0 {
+            partitions {
+                boot_partition: partition@0 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "mcuboot";
+                    reg = <0x00000000 0x0000c000>;
+                };
+
+                slot0_partition: partition@c000 {
+                    compatible = "zephyr,mapped-partition";
+                    label = "image-0";
+                    reg = <0x0000c000 0x00076000>;
+                };
+            };
+        };
+      mcuboot: *xiao_partitions
+
+logger:
+  level: DEBUG
+
+output:
+  - platform: gpio
+    id: led_output
+    pin:
+      number: PB12
+      inverted: true
+
+interval:
+  - interval: 200ms
+    then:
+      - output.turn_on: led_output
+      - delay: 100ms
+      - output.turn_off: led_output
+      - lambda: ESP_LOGD("blink", "tick");
+
+sensor:
+  - platform: internal_temperature
+    name: "Internal Temperature"
+    update_interval: 60s
